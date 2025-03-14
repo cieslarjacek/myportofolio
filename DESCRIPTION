@@ -1,0 +1,36 @@
+Package: myportfolio
+Title: My Portfolio App
+Version: 0.0.0.9000
+Authors@R: 
+    person("Jacek", "Cieslar", , "contact@jacekdev.com", role = c("aut", "cre"))
+Description: Functions and classes to make the app run easier.
+License: MIT + file LICENSE
+URL: https://github.com/cieslarjacek/myportfolio
+Depends:
+    R (>= 4.5)
+Imports:
+    bslib,
+    checkmate,
+    data.table,
+    DBI,
+    DT,
+    glue,
+    htmlwidgets,
+    jsonlite,
+    leaflet,
+    magrittr,
+    plotly,
+    R6,
+    sf,
+    shiny,
+    shinycssloaders,
+    shinyWidgets,
+    stats,
+    utils
+Suggests: 
+    testthat (>= 3.0.0),
+    withr
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Config/testthat/edition: 3

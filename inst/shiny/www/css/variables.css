@@ -1,0 +1,47 @@
+/* css variables */
+:root {
+    /* colors */
+    --clr-base: floralwhite;
+    --clr-base-dk: orange;
+    --clr-primary: navy;
+    --clr-primary-lt: dodgerblue;
+    --clr-border: black;
+    --clr-neutral: grey;
+    --clr-transparent: rgba(0, 0, 0, 0);
+    --clr-leaflet-btn: black;
+    --clr-leaflet-btn-bg: #ffffff;
+    --clr-leaflet-btn-disabled: #bbb;
+    --clr-leaflet-btn-bg-disabled: #f4f4f4;
+    --clr-btn-hover-bg: #1A7BD9;
+    --clr-btn-hover-border: #1873CB;
+    --clr-shiny-font: #1f211d;
+    /* font sizes */
+    --fs-base: 1.6vw;
+    --fs-max: 11.0rem;
+    --fs-min: 1.4rem;
+    --fs-small-base: 1.2vw;
+    --fs-small-max: 8.25rem;
+    --fs-small-min: 1.05rem;
+    --fs-bs-body: 1rem;
+    --fs-bs-btn: 0.9375rem;
+    /* font weight */
+    --fw-bs-body: 400;
+    /* padding sizes */
+    --ps-x-base: 0.825vw;
+    --ps-x-max: 3.75rem;
+    --ps-x-min: 0.75rem;
+    --ps-y-base: 0.55vw;
+    --ps-y-max: 2.5rem;
+    --ps-y-min: 0.5rem;
+    /* heading font sizes */
+    --fs-h-base: 2.2vw;
+    --fs-h-max: 15rem;
+    --fs-h-min: 1.9rem;
+    /* heading padding sizes */
+    --ps-x-h-base: 1.5vw;
+    --ps-x-h-max: 7rem;
+    --ps-x-h-min: 0.8rem;
+    --ps-x-h-zero: 0.0rem;
+    /* border-radius */
+    --border-radius-base: 15px;
+}

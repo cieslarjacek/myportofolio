@@ -1,0 +1,95 @@
+@import "variables.css";
+
+/* map panel and leaflet styles */
+.leaflet-tooltip {
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.leaflet-tooltip::before {
+    display: none;
+}
+
+#world_trends-map_reset_btn.disabled {
+    cursor: default;
+    background-color: var(--clr-leaflet-btn-bg-disabled);
+    color: var(--clr-leaflet-btn-disabled);
+    opacity: 1;
+}
+
+#world_trends-map_reset_btn {
+    cursor: pointer;
+    background-color: var(--clr-leaflet-btn-bg);
+    color: var(--clr-leaflet-btn);
+    opacity: 1;
+}
+
+/* chart panel and plotly styles */
+.card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--ps-y-min);
+    width: 100%;
+    padding-top: 0.172rem;
+    padding-bottom: 0.172rem;
+}
+
+#world_trends-chart_export.disabled {
+    visibility: hidden;
+}
+
+#world_trends-chart_export {
+    visibility: visible;
+}
+
+#world_trends-chart_export_btn {
+    padding: calc(var(--ps-y-min) * 0.5) var(--ps-y-min);
+}
+
+#dropdown-menu-world_trends-chart_export_btn {
+    min-width: 0 !important;
+}
+
+.world_trends-chart_export_list a {
+    display: block;
+    font-size: var(--fs-bs-btn) !important;
+    font-weight: var(--fw-bs-body);
+    padding: calc(var(--ps-y-min) * 0.5) var(--ps-y-min);
+    color: var(--fs-bs-btn);
+    text-decoration: none !important;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.world_trends-chart_export_list a:hover {
+    background-color: var(--clr-leaflet-btn-bg-disabled);
+}
+
+rect.rangeslider-handle-min,
+rect.rangeslider-handle-max {
+    fill: var(--clr-neutral) !important;
+}
+
+/* table panel and DT styles */
+.dt-tcontent-center {
+    text-align: center !important;
+    vertical-align: middle;
+}
+
+.dt-thead-nobold {
+    font-weight: normal !important;
+    font-style: italic !important;
+}
+
+.world_trends-table_container {
+    display: flex;
+    gap: 1rem;
+}
+
+.world_trends-table_container > .table_description_flex {
+    flex: 0 0 30%;
+}
+
+.world_trends-table_container > .table_content_flex {
+    flex: 1;
+}

@@ -1,0 +1,12 @@
+^renv$
+^renv\.lock$
+^myportfolio\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^\.vscode$
+^app_settings\.json$
+^country_codes\.csv$
+^dev\.env$
+^wb_data\.ipynb$
+^wb_indicators_codes\.csv$
+^\.lintr$

@@ -1,0 +1,7 @@
+linters: linters_with_defaults(
+  pipe_consistency_linter("auto")
+  )
+encoding: "UTF-8"
+exclusions: list(
+    "renv"
+  )

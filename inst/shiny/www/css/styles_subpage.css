@@ -1,0 +1,37 @@
+@import "variables.css";
+
+* {
+  font-family: "Figtree", sans-serif;
+}
+
+.page-title {
+  background-color: var(--clr-primary);
+  border-radius: 3px;
+  padding:
+    clamp(var(--ps-y-min), var(--ps-y-base), var(--ps-y-max)) clamp(var(--ps-x-min), var(--ps-x-base), var(--ps-x-max));
+}
+
+.back-btn {
+  font-size: clamp(var(--fs-min), var(--fs-base), var(--fs-max));
+  font-weight: bold;
+  color: var(--clr-base);
+  text-decoration: none !important;
+}
+
+.back-btn:hover {
+  color: var(--clr-base-dk);
+}
+
+.card-header {
+  font-size: var(--fs-bs-body) !important;
+}
+
+.btn-primary {
+  background-color: var(--clr-primary-lt);
+  border-color: var(--clr-primary-lt);
+}
+
+.btn-primary:hover {
+  background-color: var(--clr-btn-hover-bg);
+  border-color: var(---clr-btn-hover-border);
+}

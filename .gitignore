@@ -1,0 +1,16 @@
+# General
+.env
+*.env
+*dirty*
+
+# R
+.DS_Store
+.httr-oauth
+.quarto
+.RData
+.Rhistory
+.Rproj.user
+.Ruserdata
+
+# FTP
+sftp.json

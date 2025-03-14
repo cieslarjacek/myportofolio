@@ -1,0 +1,170 @@
+@import url("https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,700;1,400&display=swap");
+@import "variables.css";
+@import "grid.css";
+
+* {
+  background-color: var(--clr-base);
+  box-sizing: border-box;
+  color: var(--clr-primary);
+  font-family: "Figtree", sans-serif;
+  font-size: var(--fs-base);
+  font-weight: 400;
+  margin: 0;
+  padding: 0;
+}
+
+.container-fluid {
+  padding: 0;
+}
+
+/* header styles */
+.main-grid > .header {
+  background-color: var(--clr-primary);
+  display: flex;
+  justify-content: space-around;
+  position: sticky;
+  top: 0;
+}
+
+.header-btn {
+  color: var(--clr-base);
+  font-size: clamp(var(--fs-min), var(--fs-base), var(--fs-max));
+  padding:
+    clamp(var(--ps-y-min), var(--ps-y-base), var(--ps-y-max)) clamp(var(--ps-x-min), var(--ps-x-base), var(--ps-x-max));
+  text-align: center;
+  text-decoration: none !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.header-btn:hover {
+  color: var(--clr-base-dk);
+}
+
+.header-btn:active,
+.header-btn:focus,
+.nav-active {
+  background-color: var(--clr-base) !important;
+  color: var(--clr-primary) !important;
+}
+
+/* content styles - general */
+.section-heading {
+  font-size: clamp(var(--fs-h-min), var(--fs-h-base), var(--fs-h-max));
+}
+
+.section-text {
+  font-size: clamp(var(--fs-min), var(--fs-base), var(--fs-max));
+}
+
+.section-default {
+  padding:
+    clamp(var(--ps-x-h-zero), var(--ps-x-h-base), var(--ps-x-h-max)) 0rem clamp(var(--ps-x-h-min), var(--ps-x-h-base), var(--ps-x-h-max));
+  scroll-margin-top: 10vh;
+}
+
+/* content styles - intro */
+#intro {
+  padding-top:
+    calc(clamp(var(--ps-x-h-min), var(--ps-x-h-base), var(--ps-x-h-max)) * 2);
+}
+
+/* content styles - examples */
+#examples-panel {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+  row-gap: 1.2vw;
+}
+
+.example-btn {
+  display: inline;
+  flex: 0 0 calc(96% / 3);
+  text-decoration: none !important;
+}
+
+.example-btn:hover {
+  border-radius: var(--border-radius-base);
+  background-color: var(--clr-base-dk);
+}
+
+.example-btn-header {
+  font-size: clamp(var(--fs-min), var(--fs-base), var(--fs-max));
+  margin: 0;
+  width: 100%;
+  background-color: transparent;
+  padding-left: clamp(var(--ps-y-min), var(--ps-y-base), var(--ps-y-max));
+  padding-top: clamp(var(--ps-y-min), var(--ps-y-base), var(--ps-y-max));
+}
+
+.example-btn-image {
+  border-radius: var(--border-radius-base);
+  width: 100%;
+  object-fit: contain;
+}
+
+/* screen size properties */
+@media all and (max-width: 991px) {
+  .example-btn {
+    flex: 0 0 calc(98% / 2);
+  }
+}
+
+@media all and (max-width: 767px) {
+  .example-btn {
+    flex: 0 0 100%;
+  }
+}
+
+/* content styles - contact */
+#email-btn {
+  border: solid var(--clr-primary);
+  border-radius: var(--border-radius-base);
+  color: var(--clr-primary);
+  display: inline-flex;
+  font-size: clamp(var(--fs-min), var(--fs-base), var(--fs-max));
+  padding:
+    clamp(var(--ps-y-min), var(--ps-y-base), var(--ps-y-max)) clamp(var(--ps-x-min), var(--ps-x-base), var(--ps-x-max));
+  text-decoration: none !important;
+  margin-top: clamp(var(--ps-x-h-min), var(--ps-x-h-base), var(--ps-x-h-max));
+}
+
+#email-btn:hover {
+  background-color: var(--clr-base-dk);
+}
+
+/* footer styles */
+.main-grid > .footer {
+  border-top: solid var(--clr-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#footer-btns {
+  display: flex;
+  column-gap: 1vw;
+  padding:
+    clamp(var(--ps-y-min), var(--ps-y-base), var(--ps-y-max)) clamp(var(--ps-x-min), var(--ps-x-base), var(--ps-x-max));
+}
+
+.contact-btn-external {
+  display: inline-block;
+  height: clamp(var(--fs-h-min), var(--fs-h-base), var(--fs-h-max));
+  width: clamp(var(--fs-h-min), var(--fs-h-base), var(--fs-h-max));
+}
+
+.contact-btn-image {
+  border-radius: var(--border-radius-base);
+  width: 100%;
+  object-fit: contain;
+  vertical-align: top;
+}
+
+#copr-text {
+  font-size: clamp(var(--fs-small-min), var(--fs-small-base), var(--fs-small-max));
+}
