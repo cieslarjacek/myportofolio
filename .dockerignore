@@ -1,0 +1,17 @@
+# General
+Makefile
+*.log
+
+# Docker
+Dockerfile
+
+# Git
+.git
+.gitignore
+
+# R
+.Rhistory
+.RData
+.Rproj.user
+renv/library
+renv/staging

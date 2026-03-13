@@ -2,7 +2,7 @@
 .env
 *.env
 *dirty*
-.log
+*.log
 
 # R
 .DS_Store
