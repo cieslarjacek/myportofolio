@@ -2,7 +2,6 @@
 library(bslib)
 library(data.table)
 library(DBI)
-library(dotenv)
 library(DT)
 library(future)
 library(future.apply)
@@ -20,13 +19,8 @@ library(shiny)
 library(shinycssloaders)
 library(shinyWidgets)
 
-# TODO: SET THE VALUE WHILE RUNNING DOCKER IMAGE.
-Sys.setenv(LOCAL_RUN = TRUE)
-
-# TODO: LOCALLY - SOURCE WHILE RUNNING DOCKER IMAGE.
-# TODO: SERVER - SOURCE AS SECRETS.
-if (Sys.getenv("LOCAL_RUN")) {
-  dotenv::load_dot_env("../../dev.env")
+if (!as.logical(Sys.getenv("LOCAL_RUN"))) {
+  # TODO: SERVER - SOURCE AS SECRETS.
 }
 
 app_settings <- myportfolio::get_app_settings()
