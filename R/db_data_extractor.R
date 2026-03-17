@@ -128,8 +128,8 @@ create_query_data <- function(db_schema, indic_id) {
 #' Fetches data from MySQL database.
 #'
 #' @export
-DBDataExtractor <- R6::R6Class(
-  "DBDataExtractor",
+DbDataExtractor <- R6::R6Class(
+  "DbDataExtractor",
   private = list(
     # A connection to database.
     .con = NULL,
@@ -159,7 +159,7 @@ DBDataExtractor <- R6::R6Class(
     #' @param con A connection to database. Please check [DBI::dbConnect()]
     #'   for more details.
     #' @param db_schema A list with database schema.
-    #' @return A new `DBDataExtractor` object.
+    #' @return A new `DbDataExtractor` object.
     initialize = function(con, db_schema) {
       private$.con <- con
       self$db_schema <- db_schema
@@ -191,11 +191,11 @@ DBDataExtractor <- R6::R6Class(
         },
         error = function(e) {
           message("'get_data' failed with the error message:\n", e$message)
-          return(NULL)
+          NULL
         },
         warning = function(w) {
           message("'get_data' generated warning:\n", w)
-          return(NULL)
+          NULL
         }
       )
     },

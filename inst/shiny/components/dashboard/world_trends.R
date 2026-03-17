@@ -69,7 +69,7 @@ world_geometry_data <- shiny::reactive({
         password = Sys.getenv("DB_PW")
       )
 
-      db_extractor <- myportfolio::DBDataExtractor$new(
+      db_extractor <- myportfolio::DbDataExtractor$new(
         db_connection, temp_sql_db_schema
       )
       on.exit(db_extractor$disconnect(), add = TRUE)
@@ -193,7 +193,7 @@ shiny::observeEvent(map_click_registry$add$id, {
     user = Sys.getenv("DB_USERNAME"),
     password = Sys.getenv("DB_PW")
   )
-  db_extractor <- myportfolio::DBDataExtractor$new(
+  db_extractor <- myportfolio::DbDataExtractor$new(
     db_connection, sql_db_schema()
   )
   temp_indicator_dt <- data.table::as.data.table(

@@ -1,7 +1,13 @@
 linters: linters_with_defaults(
-  pipe_consistency_linter("auto")
+    object_name_linter(
+      styles = c(
+        "snake_case", "symbols", "CamelCase", "camelCase", "dotted.case"
+      )
+    ),
+    pipe_consistency_linter("auto")
   )
 encoding: "UTF-8"
 exclusions: list(
+    "ci",
     "renv"
   )
