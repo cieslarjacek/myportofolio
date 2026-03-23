@@ -34,6 +34,7 @@
 #'   for more details.
 #' @export
 build_trend_chart <- function(dt_list, color_theme, layout_config) {
+  # TODO: CREATE A NEW S3 CLASSES FOR THE PARAMS?
   checkmate::assert_list(dt_list, len = 1, names = "named")
   checkmate::assert_list(color_theme, len = 2, names = "named")
   checkmate::assert_names(
@@ -176,18 +177,20 @@ create_chart_color_theme <- function(
 #' @param initial_range A vector containing a pair of integers where
 #'   the first element is the data range real minimum
 #'   and the second is the real maximum.
-#' @param indic_name_id A list where the elements are data indicator ids
-#'   and the element names are indicator "human friendly" names. Default
-#'   values are provided by [set_name_id_indicators()].
+#' @param indic_name A string with a data indicator "human friendly" name.
+#'   Default values are extracted from [set_name_id_indicators()].
 #' @return A named list with a configuration for the trend chart layout.
 #' @export
 create_chart_config <- function(
-  indic_id, initial_range, indic_name_id = set_name_id_indicators()
+  indic_id,
+  initial_range,
+  indic_name = names(
+    which(set_name_id_indicators() == indic_id)
+  )
 ) {
+  # TODO: CREATE A NEW S3 CLASS FOR "range" PARAM?
   list(
-    title = names(
-      which(indic_name_id == indic_id)
-    ),
+    title = indic_name,
     yrange = initial_range
   )
 }
@@ -208,6 +211,7 @@ create_chart_config <- function(
 #'
 #' extract_download_btn_click(list(new_clicks, old_clicks))
 extract_download_btn_click <- function(click_set) {
+  # TODO: CREATE A NEW S3 CLASS FOR "click_set" PARAM?
   checkmate::assert_list(click_set, len = 2)
 
   current_clicks <- click_set[[1]]
@@ -237,6 +241,6 @@ extract_download_btn_click <- function(click_set) {
 make_download_file_name <- function(
   name_root, name_prefix = format(Sys.Date(), "%Y%m%d")
 ) {
-  checkmate::assert_string(name_root)
+  checkmate::assert_string(name_root, min.chars = 1)
   paste0(name_prefix, "_", str_to_underscore_case(name_root))
 }

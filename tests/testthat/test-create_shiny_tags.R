@@ -3,34 +3,32 @@ test_that("str_to_kebab_case() works", {
     "Jestem Adaś?", "mam#%ha1h bim", "!Hóla, muy@bien_am9igo", "Some Nice name"
   )
 
-  actual <- str_to_kebab_case(test_strings)
-  expected <- c(
-    "jestem-adas", "mam-ha1h-bim", "hola-muy-bien-am9igo", "some-nice-name"
+  expect_equal(
+    str_to_kebab_case(test_strings),
+    c(
+      "jestem-adas", "mam-ha1h-bim", "hola-muy-bien-am9igo", "some-nice-name"
+    )
   )
-
-  expect_equal(actual, expected)
 })
 
 test_that("create_header_hlink() works", {
   test_label <- "some_label"
-  actual <- create_header_hlink(test_label)
-
   hyphen_test_label <- str_to_kebab_case(test_label)
+
   expected <- shiny::tags$a(
-    id = paste0(hyphen_test_label, "-btn"),
+    id = paste0(str_to_kebab_case(test_label), "-btn"),
     class = "header-btn",
     href = paste0("#", hyphen_test_label),
     test_label
   )
 
-  expect_equal(actual, expected)
+  expect_equal(create_header_hlink(test_label), expected)
 })
 
 test_that("create_example_hlink() works", {
   test_label <- "some_label"
-  actual <- create_example_hlink(test_label)
-
   hyphen_test_label <- str_to_kebab_case(test_label)
+
   expected <- shiny::tags$a(
     class = "example-btn",
     href = hyphen_test_label,
@@ -44,15 +42,14 @@ test_that("create_example_hlink() works", {
     )
   )
 
-  expect_equal(actual, expected)
+  expect_equal(create_example_hlink(test_label), expected)
 })
 
 test_that("create_footer_hlink() works", {
   test_label <- "some_label"
   test_ref <- "https://some_ref"
-  actual <- create_footer_hlink(test_label, test_ref)
-
   hyphen_test_label <- str_to_kebab_case(test_label)
+
   expected <- shiny::tags$a(
     id = paste0(hyphen_test_label, "-btn"),
     class = "contact-btn contact-btn-external",
@@ -64,5 +61,5 @@ test_that("create_footer_hlink() works", {
     )
   )
 
-  expect_equal(actual, expected)
+  expect_equal(create_footer_hlink(test_label, test_ref), expected)
 })

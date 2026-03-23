@@ -1,6 +1,8 @@
 test_that("create_ui_pattern() builds expected regex pattern", {
-  actual <- create_ui_pattern(c("/", "/page1", "/test#page", "/page.html"))
-  expect_equal(actual, "^(\\/|\\/page1|\\/test#page|\\/page.html)$")
+  expect_equal(
+    create_ui_pattern(c("/", "/page1", "/test#page", "/page.html")),
+    "^(\\/|\\/page1|\\/test#page|\\/page.html)$"
+  )
 })
 
 test_that("create_ui_pattern() throws argument type error - pattern", {
