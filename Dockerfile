@@ -6,6 +6,7 @@ FROM rocker/r-ver:${R_VERSION} AS rbase-stage
 RUN echo "Stage 1: Installing base R and Debian dependencies"
 
 ARG GIT_USER
+ARG APP_MAIN_DIR
 ARG APP_NAME
 ARG APP_VERSION
 ARG R_VERSION
@@ -17,7 +18,24 @@ LABEL maintainer=${GIT_USER}
 LABEL version=${APP_VERSION}
 LABEL description="Docker image that contains My Portfolio App."
 
-RUN apt-get update && apt-get install -y \
+# Security updates.
+RUN apt-get update \
+    && apt-get install -y \
+    binutils \
+    gpgv \
+    libc-bin \
+    libfreetype6 \
+    libglib2.0-0t64 \
+    libgnutls30t64 \
+    libssh-4 \
+    libtasn1-6 \
+    linux-libc-dev \
+    locales \
+    && rm -rf /var/lib/apt/lists/*
+
+# R updates.
+RUN apt-get update \
+    && apt-get install -y \
     cmake \
     default-libmysqlclient-dev \
     libabsl-dev \
@@ -37,7 +55,7 @@ RUN apt-get update && apt-get install -y \
 FROM rbase-stage AS renv-stage
 RUN echo "Stage 2: Installing 'renv'"
 
-ARG CRAN_URL=https://cloud.r-project.org
+ENV CRAN_URL=https://cloud.r-project.org
 RUN R -e "install.packages('remotes', repos = '${CRAN_URL}')"
 RUN R -e "remotes::install_version('renv', version = '${RENV_VERSION}', repos = '${CRAN_URL}')"
 
@@ -47,8 +65,7 @@ RUN R -e "remotes::install_version('renv', version = '${RENV_VERSION}', repos = 
 FROM renv-stage AS build-env-stage
 RUN echo "Stage 3: Building environment with 'renv'"
 
-ENV MAIN_APP_DIR=/app
-WORKDIR ${MAIN_APP_DIR}
+WORKDIR ${APP_MAIN_DIR}
 
 # Copy only renv-related files for better layer caching.
 COPY renv.lock renv.lock
@@ -62,22 +79,22 @@ RUN R -e "renv::restore()"
 FROM build-env-stage AS shiny-app-stage
 RUN echo "Stage 4: Installing project package and running Shiny"
 
-WORKDIR ${MAIN_APP_DIR}
+WORKDIR ${APP_MAIN_DIR}
 
 # Copy necessary folders and files from the project.
-COPY inst ${MAIN_APP_DIR}/inst
-COPY man ${MAIN_APP_DIR}/man
-COPY R ${MAIN_APP_DIR}/R
-COPY DESCRIPTION ${MAIN_APP_DIR}
-COPY NAMESPACE ${MAIN_APP_DIR}
+COPY inst ${APP_MAIN_DIR}/inst
+COPY man ${APP_MAIN_DIR}/man
+COPY R ${APP_MAIN_DIR}/R
+COPY DESCRIPTION ${APP_MAIN_DIR}
+COPY NAMESPACE ${APP_MAIN_DIR}
 # Copy "renv" files from the previous stage.
-COPY --from=build-env-stage ${MAIN_APP_DIR}/renv ${MAIN_APP_DIR}/renv
-COPY --from=build-env-stage ${MAIN_APP_DIR}/renv.lock  ${MAIN_APP_DIR}/renv.lock
+COPY --from=build-env-stage ${APP_MAIN_DIR}/renv ${APP_MAIN_DIR}/renv
+COPY --from=build-env-stage ${APP_MAIN_DIR}/renv.lock  ${APP_MAIN_DIR}/renv.lock
 
-# Install your package
+# Install "myportfolio" package
 RUN R -e "install.packages('.', repos = NULL, type = 'source')"
 
 EXPOSE 3838
 
-ENV APP_PATH=${MAIN_APP_DIR}/inst/shiny/app.R
+ENV APP_PATH=${APP_MAIN_DIR}/inst/shiny/app.R
 CMD ["R", "-e", "shiny::runApp(appDir = Sys.getenv('APP_PATH'), host = '0.0.0.0', port = 3838)"]
