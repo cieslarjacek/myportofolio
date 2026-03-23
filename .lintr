@@ -4,7 +4,12 @@ linters: linters_with_defaults(
         "snake_case", "symbols", "CamelCase", "camelCase", "dotted.case"
       )
     ),
-    pipe_consistency_linter("auto")
+    pipe_consistency_linter("auto"),
+    system_call_linter,
+    system2_call_linter,
+    eval_parse_linter,
+    sql_paste_linter,
+    hardcoded_secret_linter
   )
 encoding: "UTF-8"
 exclusions: list(
