@@ -30,13 +30,16 @@
 #'   for more details.
 #' @export
 build_world_map <- function(data_list, color_theme) {
-  for (elem in list(data_list, color_theme)) {
-    checkmate::assert_list(elem, min.len = 2, names = "named")
-    checkmate::assert_names(
-      names(elem),
-      identical.to = set_data_labels()$world_trends
-    )
-  }
+  checkmate::assert_list(data_list, min.len = 2, names = "named")
+  checkmate::assert_names(
+    names(data_list),
+    identical.to = set_data_labels()$world_trends
+  )
+  checkmate::assert_list(color_theme, min.len = 2, names = "named")
+  checkmate::assert_names(
+    names(color_theme),
+    identical.to = set_data_labels()$world_trends
+  )
 
   create_base_map() %>%
     add_bounds() %>%
