@@ -1,4 +1,5 @@
-\\.env$
+\.env$
+\.log$
 ^\.dockerignore
 ^\.lintr$
 ^\.Rproj\.user$
@@ -11,5 +12,3 @@
 ^renv\.lock$
 ^renv$
 ^scripts$
-^wb_data\.ipynb$
-^wb_indicators_codes\.csv$
