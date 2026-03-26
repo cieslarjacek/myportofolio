@@ -79,7 +79,7 @@ select_in_dt <- function(data_object, col_name, values) {
   checkmate::assert_names(names(dt), must.include = col_name)
   checkmate::assert_vector(values)
 
-  dt[get(col_name) %in% values]
+  dt[.(values), on = col_name, nomatch = 0]
 }
 
 #' Extract data that are in the trend chart
