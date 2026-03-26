@@ -42,7 +42,7 @@ test_that(
   }
 )
 
-test_that("create_chart_config() returns correct config data", {
+test_that("make_chart_config() returns correct config data", {
   test_id <- "wb_wdi_si_dst_10th_10"
   test_range <- c(1, 10)
 
@@ -52,11 +52,11 @@ test_that("create_chart_config() returns correct config data", {
   )
 
   expect_equal(
-    create_chart_config(test_id, test_range), expected
+    make_chart_config(test_id, test_range), expected
   )
 })
 
-test_that("create_chart_color_theme() returns correct color data", {
+test_that("make_chart_color_theme() returns correct color data", {
   test_series_color <- "blue"
   test_legend_color <- "green"
 
@@ -66,7 +66,7 @@ test_that("create_chart_color_theme() returns correct color data", {
   )
 
   expect_equal(
-    create_chart_color_theme(test_series_color, test_legend_color), expected
+    make_chart_color_theme(test_series_color, test_legend_color), expected
   )
 })
 

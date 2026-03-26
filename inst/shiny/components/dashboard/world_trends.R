@@ -238,8 +238,8 @@ shiny::observeEvent(chart_active_data(),
 
     temp_plot <- myportfolio::build_trend_chart(
       chart_active_data()[map_click_registry$add$label],
-      myportfolio::create_chart_color_theme(map_active_color()[1]),
-      myportfolio::create_chart_config(
+      myportfolio::make_chart_color_theme(map_active_color()[1]),
+      myportfolio::make_chart_config(
         indicator_id(), chart_active_data_range$absolute$y
       )
     )
@@ -300,7 +300,7 @@ observeEvent(wt_chart_relayout_event(),
         "world_trends", chart_active_data_range$absolute$y
       )
     } else if (!myportfolio::is_empty(xrange_event)) {
-      xrange <- myportfolio::create_xrange(xrange_event)
+      xrange <- myportfolio::make_xrange(xrange_event)
       chart_active_data_range$current$x <- xrange
 
       yrange <- myportfolio::extract_dt_list_range(

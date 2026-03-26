@@ -30,7 +30,7 @@ select_page <- function(url_path, route_schema, default) {
   route_schema[[url_path]]
 }
 
-#' Get or create `uiPattern`
+#' Get or make `uiPattern`
 #'
 #' Gets general `uiPattern` for [shiny::shinyApp()] that will match every
 #'   URL path that starts with "/" or creates regex with exact `uiPattern`.
@@ -44,7 +44,7 @@ get_ui_pattern <- function() {
 }
 
 #' @rdname get_ui_pattern
-create_ui_pattern <- function(url_path) {
+make_ui_pattern <- function(url_path) {
   checkmate::assert_character(
     url_path,
     pattern = "^/", any.missing = FALSE, all.missing = FALSE, unique = TRUE

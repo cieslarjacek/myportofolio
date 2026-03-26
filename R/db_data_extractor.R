@@ -1,4 +1,4 @@
-#' Create SQL query for "clickable"/"notclickable" geometry data
+#' Make SQL query for "clickable"/"notclickable" geometry data
 #'
 #' Makes SQL query for fetching "clickable"/"notclickable" geometry data using
 #'   database schema.
@@ -8,12 +8,12 @@
 #' @return A character vector containing SQL query.
 #' @keywords internal
 #' @noRd
-create_query_geom_clickable <- function(db_schema) {
+make_query_geom_clickable <- function(db_schema) {
   assert_with(checkmate::assert_list, db_schema, assert_named_args())
 
   aux_world_geo_country_id <- db_schema$world_geo[1]
 
-  create_query_geometry(db_schema) %>%
+  make_query_geometry(db_schema) %>%
     glue::glue(
       "\nWHERE {world_geo_country_id} IN (
         SELECT DISTINCT {country_id_col}
@@ -26,15 +26,15 @@ create_query_geom_clickable <- function(db_schema) {
     )
 }
 
-#' @rdname create_query_geom_clickable
+#' @rdname make_query_geom_clickable
 #' @keywords internal
 #' @noRd
-create_query_geom_notclickable <- function(db_schema) {
+make_query_geom_notclickable <- function(db_schema) {
   assert_with(checkmate::assert_list, db_schema, assert_named_args())
 
   aux_indicator_dt <- names(db_schema)[3]
 
-  create_query_geometry(db_schema) %>%
+  make_query_geometry(db_schema) %>%
     glue::glue(
       "\nLEFT JOIN {indicator_dt}
       ON {country_id} = {indicator_country_id}
@@ -45,10 +45,10 @@ create_query_geom_notclickable <- function(db_schema) {
     )
 }
 
-#' @rdname create_query_geom_clickable
+#' @rdname make_query_geom_clickable
 #' @keywords internal
 #' @noRd
-create_query_geometry <- function(db_schema) {
+make_query_geometry <- function(db_schema) {
   aux_world_geo_geometry <- db_schema$world_geo[2]
 
   glue::glue(
@@ -69,7 +69,7 @@ create_query_geometry <- function(db_schema) {
   )
 }
 
-#' Create SQL query for indicator/weight data
+#' Make SQL query for indicator/weight data
 #'
 #' Makes SQL query for fetching country specific indicator/weight data using
 #'   database schema.
@@ -80,22 +80,22 @@ create_query_geometry <- function(db_schema) {
 #' @return A character vector containing SQL query.
 #' @keywords internal
 #' @noRd
-create_query_indicator_data <- function(db_schema) {
+make_query_indicator_data <- function(db_schema) {
   assert_with(checkmate::assert_list, db_schema, assert_named_args())
 
-  create_query_data(db_schema, names(db_schema)[3])
+  make_query_data(db_schema, names(db_schema)[3])
 }
 
-#' @rdname create_query_indicator_data
+#' @rdname make_query_indicator_data
 #' @keywords internal
 #' @noRd
-create_query_weight_data <- function(db_schema) {
+make_query_weight_data <- function(db_schema) {
   assert_with(checkmate::assert_list, db_schema, assert_named_args())
 
   aux_table_name <- names(db_schema)[4]
   if (is_empty(aux_table_name)) {
     warning(
-      "In 'create_query_weight_data':",
+      "In 'make_query_weight_data':",
       "\nWeight data table name doesn't exist in 'db_schema'.",
       "\nSQL query wasn't created and data weren't extracted.",
       call. = FALSE
@@ -103,13 +103,13 @@ create_query_weight_data <- function(db_schema) {
     return(NULL)
   }
 
-  create_query_data(db_schema, aux_table_name)
+  make_query_data(db_schema, aux_table_name)
 }
 
-#' @rdname create_query_indicator_data
+#' @rdname make_query_indicator_data
 #' @keywords internal
 #' @noRd
-create_query_data <- function(db_schema, indic_id) {
+make_query_data <- function(db_schema, indic_id) {
   sort_part <- glue::glue(
     " ORDER BY {indicator_time_period} ASC;",
     indicator_time_period = db_schema[[indic_id]][2]
@@ -141,11 +141,11 @@ DbDataExtractor <- R6::R6Class(
       weight_data = NULL
     ),
     # A list of functions that create SQL queries.
-    .create_query_func = list(
-      geometry_clickable = create_query_geom_clickable,
-      geometry_notclickable = create_query_geom_notclickable,
-      indicator_data = create_query_indicator_data,
-      weight_data = create_query_weight_data
+    .make_query_func = list(
+      geometry_clickable = make_query_geom_clickable,
+      geometry_notclickable = make_query_geom_notclickable,
+      indicator_data = make_query_indicator_data,
+      weight_data = make_query_weight_data
     )
   ),
   public = list(
@@ -173,7 +173,7 @@ DbDataExtractor <- R6::R6Class(
     get_data = function(type, country_id = NULL) {
       tryCatch(
         {
-          aux_query <- private$.create_query_func[[type]](self$db_schema)
+          aux_query <- private$.make_query_func[[type]](self$db_schema)
           private$.query[[type]] <- aux_query
 
           if (!is_empty(country_id)) {

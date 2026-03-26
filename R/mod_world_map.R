@@ -31,7 +31,7 @@ worldMapServer <- function(id, indic_id, data_pair) {
 
       build_world_map(
         geometry_data(),
-        create_map_color_theme()
+        make_map_color_theme()
       ) %>%
         add_js_code(shiny::getCurrentOutputInfo()$name)
     })

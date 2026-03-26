@@ -151,7 +151,7 @@ add_reset_button <- function(map) {
   )
 }
 
-#' Create map color theme
+#' Make map color theme
 #'
 #' Makes a color theme to use in the world map polygons.
 #'
@@ -162,7 +162,7 @@ add_reset_button <- function(map) {
 #' @return A named list with a color theme for "clickable" and "notclickable"
 #'   map polygons.
 #' @export
-create_map_color_theme <- function(
+make_map_color_theme <- function(
   color_palette = set_color_palette(),
   target_names = c("stroke", "fill", "highlight_stroke")
 ) {

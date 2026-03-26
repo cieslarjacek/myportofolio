@@ -46,7 +46,7 @@ updtTrendChartYaxisServer <- function(id, new_yrange) {
   shiny::moduleServer(id, function(input, output, session) {
     plotly::plotlyProxy("chart", session) %>%
       plotly::plotlyProxyInvoke("relayout", list(
-        yaxis = list(range = create_yrange(new_yrange))
+        yaxis = list(range = make_yrange(new_yrange))
       ))
   })
 }

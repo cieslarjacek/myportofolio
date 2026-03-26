@@ -162,7 +162,7 @@ source_weight <- function(data_pair) {
 #'   country indicator data into decades.
 #'
 #' @details
-#' **`make_decade_aggregator`** utilizes `aggregation_params` to make the
+#' **`create_decade_aggregator`** utilizes `aggregation_params` to create the
 #' aggregation strategy (function) which will convert the annual country
 #' indicator data into a ten-year summary. The aggregation function needs an
 #' object that can be coerced to `data.table` as an input.
@@ -180,7 +180,7 @@ source_weight <- function(data_pair) {
 #'   contain `data.table` objects.
 #'
 #' @return See Details.
-make_decade_aggregator <- function(aggregation_params) {
+create_decade_aggregator <- function(aggregation_params) {
   # TODO: ADD ASSERTIONS.
 
   aux_func <- match.fun(aggregation_params$function_name)
@@ -241,7 +241,7 @@ make_decade_aggregator <- function(aggregation_params) {
   }
 }
 
-#' @rdname make_decade_aggregator
+#' @rdname create_decade_aggregator
 #' @export
 run_aggregation_pipeline <- function(aggregation_strategy, data_list) {
   # TODO: ADD ASSERTIONS.

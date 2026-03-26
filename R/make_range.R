@@ -1,6 +1,6 @@
-#' Create range for data on x or y axis
+#' Make range for data on x or y axis
 #'
-#' Creates x or y axis data range for `plotly` line chart.
+#' Makes x or y axis data range for `plotly` line chart.
 #'
 #' @details
 #' For x-axis new range is created using `celinig()` and `floor()` rounding.
@@ -16,7 +16,7 @@
 #' @return A vector containing a pair of integers where the first element is
 #'   the data range modified minimum and the second is the modified maximum.
 #' @export
-create_xrange <- function(initial_range) {
+make_xrange <- function(initial_range) {
   assert_with(
     checkmate::assert_numeric, initial_range, assert_len2_args()
   )
@@ -24,9 +24,9 @@ create_xrange <- function(initial_range) {
   c(ceiling(initial_range[1]), floor(initial_range[2]))
 }
 
-#' @rdname create_xrange
+#' @rdname make_xrange
 #' @export
-create_yrange <- function(initial_range) {
+make_yrange <- function(initial_range) {
   assert_with(
     checkmate::assert_numeric, initial_range, assert_len2_args()
   )
@@ -36,7 +36,7 @@ create_yrange <- function(initial_range) {
   target_yrange
 }
 
-#' @rdname create_xrange
+#' @rdname make_xrange
 calculate_yrange_padding <- function(initial_range) {
   initial_range %>%
     diff() %>%
@@ -63,7 +63,7 @@ select_range <- function(range_pair) {
   )
 
   if (!is_empty(range_pair[[1]])) {
-    return(create_xrange(range_pair[[1]]))
+    return(make_xrange(range_pair[[1]]))
   }
   range_pair[[2]]
 }

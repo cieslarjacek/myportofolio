@@ -1,21 +1,21 @@
-test_that("create_ui_pattern() builds expected regex pattern", {
+test_that("make_ui_pattern() builds expected regex pattern", {
   expect_equal(
-    create_ui_pattern(c("/", "/page1", "/test#page", "/page.html")),
+    make_ui_pattern(c("/", "/page1", "/test#page", "/page.html")),
     "^(\\/|\\/page1|\\/test#page|\\/page.html)$"
   )
 })
 
-test_that("create_ui_pattern() throws argument type error - pattern", {
+test_that("make_ui_pattern() throws argument type error - pattern", {
   expect_error(
-    create_ui_pattern(c("/", "/page1", "test#page", "/page.html")),
+    make_ui_pattern(c("/", "/page1", "test#page", "/page.html")),
     "Assertion on 'url_path' failed: Must comply to pattern '^/'.",
     fixed = TRUE
   )
 })
 
-test_that("create_ui_pattern() throws argument type error - unique", {
+test_that("make_ui_pattern() throws argument type error - unique", {
   expect_error(
-    create_ui_pattern(c("/", "/page1", "/page1")),
+    make_ui_pattern(c("/", "/page1", "/page1")),
     "Assertion on 'url_path' failed: Contains duplicated values, position 3."
   )
 })

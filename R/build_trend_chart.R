@@ -115,7 +115,7 @@ add_layout <- function(chart, layout_config, legend_color) {
     ),
     yaxis = list(
       title = list(standoff = 0, font = list(size = 1)),
-      range = create_yrange(layout_config$yrange)
+      range = make_yrange(layout_config$yrange)
     ),
     margin = list(l = 35, r = 10, t = 40, b = 20, pad = 0)
   )
@@ -148,7 +148,7 @@ set_plotly_remove_btns <- function() {
   )
 }
 
-#' Create chart color theme
+#' Make chart color theme
 #'
 #' Makes a color theme to use in the trends chart series and legend.
 #'
@@ -160,7 +160,7 @@ set_plotly_remove_btns <- function() {
 #' @return A named list with a color theme for the trend chart series
 #'   and legend.
 #' @export
-create_chart_color_theme <- function(
+make_chart_color_theme <- function(
   series_color, legend_color = set_color_palette()$transparent
 ) {
   list(
@@ -169,7 +169,7 @@ create_chart_color_theme <- function(
   )
 }
 
-#' Create chart configuration
+#' Make chart configuration
 #'
 #' Makes a configuration list to use in the trends chart layout.
 #'
@@ -181,7 +181,7 @@ create_chart_color_theme <- function(
 #'   Default values are extracted from [set_name_id_indicators()].
 #' @return A named list with a configuration for the trend chart layout.
 #' @export
-create_chart_config <- function(
+make_chart_config <- function(
   indic_id,
   initial_range,
   indic_name = names(

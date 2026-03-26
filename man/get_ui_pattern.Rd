@@ -2,12 +2,12 @@
 % Please edit documentation in R/route_page.R
 \name{get_ui_pattern}
 \alias{get_ui_pattern}
-\alias{create_ui_pattern}
-\title{Get or create \code{uiPattern}}
+\alias{make_ui_pattern}
+\title{Get or make \code{uiPattern}}
 \usage{
 get_ui_pattern()
 
-create_ui_pattern(url_path)
+make_ui_pattern(url_path)
 }
 \arguments{
 \item{url_path}{A character vector with target URL path(s). URL path
