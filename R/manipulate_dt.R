@@ -70,16 +70,16 @@ try_coerce_to_dt <- function(data_object) {
 #'   the given column.
 #'
 #' @inheritParams extract_dt_list_range
-#' @param values A vector containing expected values.
+#' @param target_values A vector containing expected values.
 #' @return A data table with selected rows.
 #' @export
-select_in_dt <- function(data_object, col_name, values) {
+select_in_dt <- function(data_object, col_name, target_values) {
   checkmate::assert_string(col_name)
   dt <- try_coerce_to_dt(data_object)
   checkmate::assert_names(names(dt), must.include = col_name)
-  checkmate::assert_vector(values)
+  checkmate::assert_vector(target_values)
 
-  dt[.(values), on = col_name, nomatch = 0]
+  dt[get(col_name) %in% target_values]
 }
 
 #' Extract data that are in the trend chart
@@ -93,7 +93,7 @@ select_in_dt <- function(data_object, col_name, values) {
 #' - column name and condition values.
 #'
 #' @inheritParams extract_dt_list_range
-#' @return A data table with the filter trends chart data in the long format.
+#' @return A data table with the filtered trends chart data in the long format.
 #' @export
 extract_trends_chart_dt <- function(data_list, config) {
   assert_with(checkmate::assert_list, data_list, assert_named_args())
@@ -124,8 +124,7 @@ convert_dt_to_json <- function(data_object) {
   dt <- try_coerce_to_dt(data_object)
 
   jsonlite::toJSON(
-    dt,
-    dataframe = "rows", pretty = FALSE, auto_unbox = TRUE, na = "null"
+    dt, dataframe = "rows", pretty = FALSE, auto_unbox = TRUE, na = "null"
   )
 }
 
@@ -144,6 +143,7 @@ convert_dt_to_json <- function(data_object) {
 #' @return The "receiver" list containing the same number of elements, but with
 #'   added column "weight" to each.
 source_weight <- function(data_pair) {
+  # TODO: CREATE A NEW S3 CLASSES FOR THE PARAM?
   assert_with(checkmate::assert_list, data_pair, check_len2_args())
   checkmate::assert_names(
     names(data_pair[[1]]),

@@ -13,7 +13,7 @@ extract_trends_chart_dt(data_list, config)
 \item{config}{A list with a configuration data (see Details).}
 }
 \value{
-A data table with the filter trends chart data in the long format.
+A data table with the filtered trends chart data in the long format.
 }
 \description{
 Extracts current data that are shown in the trend chart UI.

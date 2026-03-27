@@ -4,7 +4,7 @@
 \alias{select_in_dt}
 \title{Filter data table rows using \code{\%in\%} operator}
 \usage{
-select_in_dt(data_object, col_name, values)
+select_in_dt(data_object, col_name, target_values)
 }
 \arguments{
 \item{data_object}{An object that can be coerced to \code{data.table}.}
@@ -12,7 +12,7 @@ select_in_dt(data_object, col_name, values)
 \item{col_name}{A character string with a column name for which data table
 operation will be conducted.}
 
-\item{values}{A vector containing expected values.}
+\item{target_values}{A vector containing expected values.}
 }
 \value{
 A data table with selected rows.
