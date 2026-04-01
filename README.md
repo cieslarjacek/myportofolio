@@ -51,7 +51,7 @@ What sets this project apart is its engineering approach. The app is structured 
 ## Planned Features
 
 - "Data Summary" and "Data Modeling" examples.
-- Utilizing other statistical (e.g. `tidymodels`) and visualization tools (e.g. `ggplot2`).
+- Utilizing other statistical and visualization tools (e.g. `tidymodels`, `ggplot2`).
 - Working CI/CD and ETL pipelines.
 
 ---
@@ -134,7 +134,7 @@ It is not possible to run the app locally without relevant ".env" files.
 
 ## Contact
 
-I’m open to freelance opportunities focused on R Shiny applications and end-to-end data dashboard solutions, including design, development, and maintenance.
+I’m open to freelance opportunities focused on R Shiny applications and end-to-end data dashboard solutions - including design, development, and maintenance.
 
 - **Malt:** [Jacek Cieslar](https://www.malt.com/profile/jacekcieslar)
 - **Upwork:** [Jacek Cieslar](https://www.upwork.com/freelancers/~01dcdac8f2ee9cfc3f?mp_source=share)
