@@ -1,5 +1,5 @@
 # TODO: GENERALIZE REPEATED CODE IN THE UI PAGES ACROSS COMPONENTS.
-etl_page <- bslib::page_fluid(
+cicd_page <- bslib::page_fluid(
   # Head.
   shiny::tags$head(
     shiny::tags$link(
@@ -19,7 +19,7 @@ etl_page <- bslib::page_fluid(
   # Body content.
   bslib::card(
     card_body(
-      "Placeholder for 'ETL' UI."
+      "Placeholder for 'CI/CD' UI."
     )
   )
 )

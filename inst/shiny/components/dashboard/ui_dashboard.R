@@ -25,6 +25,7 @@ dashboard_page <- bslib::page_fluid(
     )
   ),
   # Body content.
+  # TODO: ADD "create_" FUNCTION FOR ACCORDION PANELS.
   bslib::layout_sidebar(
     sidebar = bslib::sidebar(
       bslib::accordion(
@@ -39,6 +40,16 @@ dashboard_page <- bslib::page_fluid(
           "Data Summary",
           id = "data_summary",
           myportfolio::sidenoteUI("data_summary")
+        ),
+        bslib::accordion_panel(
+          "Data Modeling",
+          id = "data_modeling",
+          myportfolio::sidenoteUI("data_modeling")
+        ),
+        bslib::accordion_panel(
+          "Other",
+          id = "other",
+          myportfolio::sidenoteUI("other")
         )
       )
     ),
@@ -87,6 +98,20 @@ dashboard_page <- bslib::page_fluid(
       condition = "input.examples_list == 'Data Summary'",
       shiny::tags$div(
         shiny::textOutput("summary_text")
+      )
+    ),
+    ## "Data Modeling".
+    shiny::conditionalPanel(
+      condition = "input.examples_list == 'Data Modeling'",
+      shiny::tags$div(
+        shiny::textOutput("modeling_text")
+      )
+    ),
+    ## "Other".
+    shiny::conditionalPanel(
+      condition = "input.examples_list == 'Other'",
+      shiny::tags$div(
+        shiny::textOutput("other_text")
       )
     )
   ),

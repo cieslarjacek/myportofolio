@@ -1,4 +1,4 @@
-# TODO: CLEAN THE LIST OF LIBRARIES.
+# TODO: CLEAN THE LIST OF PACKAGES.
 library(bslib)
 library(data.table)
 library(DBI)

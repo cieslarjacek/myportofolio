@@ -50,7 +50,7 @@ get_app_settings <- function() {
 
 #' @rdname get_app_settings
 set_app_components <- function() {
-  c("dashboard", "main", "model", "etl", "tests")
+  c("main", "dashboard", "cicd", "etl")
 }
 
 #' @rdname get_app_settings

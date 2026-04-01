@@ -8,6 +8,7 @@ route_mapping <- list(
   "/main" = main_page,
   "/main#examples" = main_page,
   "/dashboard" = dashboard_page,
+  "/ci-cd" = cicd_page,
   "/etl" = etl_page
 )
 

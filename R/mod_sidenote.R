@@ -36,7 +36,9 @@ get_sidenote_message <- function(id) {
       "R <a href='https://github.com/rspatial/geodata' target='_blank'>geodata</a> package. ",
       "Some country borders were adjusted to fit administrative division used by the World Bank.</p>"
     ),
-    data_summary = "Some text about and instructions."
+    data_summary = "Placeholder for details about 'Data Summary'.",
+    data_modeling = "Placeholder for details about 'Data Modeling'.",
+    other = "Placeholder for details about 'Other."
   )
 }
 # nolint end
