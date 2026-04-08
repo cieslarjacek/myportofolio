@@ -72,7 +72,7 @@ test_that("make_chart_color_theme() returns correct color data", {
 
 test_that("build_trend_chart() creates right chart", {
   expected <- create_base_chart() %>%
-    add_series(test_dt_list, test_chart_color_theme$series) %>%
+    add_series(test_chart_dt_list, test_chart_color_theme$series) %>%
     add_layout(test_chart_config, test_chart_color_theme$legend) %>%
     add_config() %>%
     add_event_register()
@@ -80,7 +80,7 @@ test_that("build_trend_chart() creates right chart", {
   expect_equal(
     standarize_chart(
       build_trend_chart(
-        test_dt_list, test_chart_color_theme, test_chart_config
+        test_chart_dt_list, test_chart_color_theme, test_chart_config
       )
     ),
     standarize_chart(expected)
@@ -101,7 +101,7 @@ test_that("build_trend_chart() throws argument type error - 'dt_list'",
     )
     expect_error(
       build_trend_chart(
-        unname(test_dt_list), test_chart_color_theme, test_chart_config
+        unname(test_chart_dt_list), test_chart_color_theme, test_chart_config
       ),
       error_msg
     )
@@ -119,21 +119,21 @@ test_that("build_trend_chart() throws argument type error - 'color_theme'",
     error_msg <- "Assertion on 'color_theme' failed"
 
     expect_error(
-      build_trend_chart(test_dt_list, "a", test_chart_config),
+      build_trend_chart(test_chart_dt_list, "a", test_chart_config),
       error_msg
     )
     expect_error(
-      build_trend_chart(test_dt_list, list(), test_chart_config),
+      build_trend_chart(test_chart_dt_list, list(), test_chart_config),
       error_msg
     )
     expect_error(
       build_trend_chart(
-        test_dt_list, unname(test_chart_color_theme), test_chart_config
+        test_chart_dt_list, unname(test_chart_color_theme), test_chart_config
       ),
       error_msg
     )
     expect_error(
-      build_trend_chart(test_dt_list, test_dt_list, test_chart_config),
+      build_trend_chart(test_chart_dt_list, test_chart_dt_list, test_chart_config),
       error_msg
     )
   }
@@ -146,7 +146,7 @@ test_that(
     error_msg <- "Assertion on 'names\\(color_theme\\)' failed"
     expect_error(
       build_trend_chart(
-        test_dt_list, test_chart_color_theme, test_chart_config
+        test_chart_dt_list, test_chart_color_theme, test_chart_config
       ),
       error_msg
     )
@@ -158,21 +158,21 @@ test_that("build_trend_chart() throws argument type error - 'layout_config'",
     error_msg <- "Assertion on 'layout_config' failed"
 
     expect_error(
-      build_trend_chart(test_dt_list, test_chart_color_theme, 1),
+      build_trend_chart(test_chart_dt_list, test_chart_color_theme, 1),
       error_msg
     )
     expect_error(
-      build_trend_chart(test_dt_list, test_chart_color_theme, list()),
+      build_trend_chart(test_chart_dt_list, test_chart_color_theme, list()),
       error_msg
     )
     expect_error(
       build_trend_chart(
-        test_dt_list, test_chart_color_theme, unname(test_chart_config)
+        test_chart_dt_list, test_chart_color_theme, unname(test_chart_config)
       ),
       error_msg
     )
     expect_error(
-      build_trend_chart(test_dt_list, test_chart_color_theme, test_dt_list),
+      build_trend_chart(test_chart_dt_list, test_chart_color_theme, test_chart_dt_list),
       error_msg
     )
   }
@@ -186,7 +186,7 @@ test_that(
     names(test_chart_config) <- c("name1", "name2")
     expect_error(
       build_trend_chart(
-        test_dt_list, test_chart_color_theme, test_chart_config
+        test_chart_dt_list, test_chart_color_theme, test_chart_config
       ),
       error_msg
     )

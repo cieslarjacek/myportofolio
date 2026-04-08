@@ -124,4 +124,75 @@ test_that("source_weight() returns correct weighted data table", {
   )
 })
 
+test_that("set_decade_aggregator() gives proper function - 'max'", {
+  expected <- data.table::data.table(
+    Decade = c("1970s", "1990s", "2000s"),
+    country_id = c("A", "A", "A"),
+    value = c(90, 30, 60)
+  )
+  actual_aggregation <- set_decade_aggregator(
+    list(function_name = "max", column_name = "time_period")
+  )
 
+  expect_equal(actual_aggregation(test_decade_dt1), expected)
+})
+
+test_that("set_decade_aggregator() gives proper function - 'mean'", {
+  expected <- data.table::data.table(
+    Decade = c("1970s", "1990s", "2000s"),
+    country_id = c("A", "A", "A"),
+    value = c(80, 20, 50)
+  )
+  actual_aggregation <- set_decade_aggregator(
+    list(function_name = "mean", column_name = "value")
+  )
+
+  expect_equal(actual_aggregation(test_decade_dt1), expected)
+})
+
+test_that("set_decade_aggregator() gives proper function - 'weighted.mean'",{
+  expected <- test_decade_dt1[, .(
+    value = sum(value * weight) / sum(weight)
+  ), by = .(check_decade, country_id)]
+  names(expected)[1] <- "Decade"
+
+  actual_aggregation <- set_decade_aggregator(
+    list(function_name = "weighted.mean", column_name = "value")
+  )
+
+  expect_equal(actual_aggregation(test_decade_dt1), expected)
+})
+
+test_that("set_decade_aggregator() gives proper function - 'geometric.mean'", {
+  expected <- copy(test_decade_dt1) %>%
+    .[, value := 1 + value / 100] %>%
+    .[,
+      .(value = geometric.mean(value, na.rm = TRUE)),
+      by = .(check_decade, country_id)
+    ] %>%
+    .[, value := (value - 1) * 100]
+  names(expected)[1] <- "Decade"
+
+  actual_aggregation <- set_decade_aggregator(
+    list(function_name = "geometric.mean", column_name = "value")
+  )
+  actual <- actual_aggregation(test_decade_dt1)
+
+  expect_equal(actual, expected)
+})
+
+test_that("run_decade_aggregator() returns correct data", {
+  expected <- data.table::data.table(
+    Decade = c("1970s", "1980s", "1990s", "2000s"),
+    A = c(90, NA, 30, 60),
+    B = c(30, 90, NA, 60)
+  )
+
+  actual <- set_decade_aggregator(
+    list(function_name = "max", column_name = "time_period")
+  ) %>%
+    run_decade_aggregator(list(A = test_decade_dt1, B = test_decade_dt2)) %>%
+    data.table::setkey(NULL)
+
+  expect_equal(actual, expected)
+})

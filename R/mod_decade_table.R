@@ -74,8 +74,8 @@ decadeTableServer <- function(id, render_flag, aggregation_input) {
         indicator_data <- source_weight(list(indicator_data, weight_data))
       }
 
-      decade_dt <- create_decade_aggregator(aggregation_params()) %>%
-        run_aggregation_pipeline(indicator_data)
+      decade_dt <- set_decade_aggregator(aggregation_params()) %>%
+        run_decade_aggregator(indicator_data)
 
       build_decade_table(decade_dt) %>%
         add_js_code(shiny::getCurrentOutputInfo()$name)

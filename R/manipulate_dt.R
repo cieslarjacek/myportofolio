@@ -156,17 +156,24 @@ source_weight <- function(data_pair) {
   }, data_pair[[1]], data_pair[[2]], SIMPLIFY = FALSE)
 }
 
-#' Make and apply an aggregation function
+#' Create and apply an aggregation strategy
 #'
 #' Prepares and applies the aggregation strategy that transforms the annual
 #'   country indicator data into decades.
 #'
 #' @details
-#' **`create_decade_aggregator`** utilizes `aggregation_params` to create the
+#' **`get_decade_aggregator`** utilizes `aggregation_params` to create the
 #' aggregation strategy (function) which will convert the annual country
-#' indicator data into a ten-year summary. The aggregation function needs an
-#' object that can be coerced to `data.table` as an input.
-#' **`run_aggregation_pipeline`** applies the aggregation strategy to the list
+#' indicator data into a ten-year summary. The aggregation function needs a
+#' `data.table` object as an input.
+#'
+#' **`add_decade_column`** adds "Decade" column to a data table. Both input and
+#' output are `data.table` objects.
+#'
+#' **`set_decade_aggregator`** prepares function that will apply given
+#' aggregation strategy to a data object that can be coerced to `data.table`.
+#'
+#' **`run_decade_aggregator`** applies the aggregation strategy to the list
 #' of data tables, merges them together and reshapes from long to wide format.
 #' Returns a single `data.table` with the aggregated data per country and
 #' decade.
@@ -174,76 +181,79 @@ source_weight <- function(data_pair) {
 #' @param aggregation_params A list containing the function name that will be
 #'   used for the aggregation and the column name on which the calculation will
 #'   be performed.
+#' @param data_table A `data.table` object to which aggregation will be applied.
 #' @param aggregation_strategy A function which is a relevant aggregation
 #'   strategy.
 #' @param data_list A list on which aggregation strategy will be used. It should
-#'   contain `data.table` objects.
+#'   contain data objects that can be coerced to `data.table`.
 #'
 #' @return See Details.
-create_decade_aggregator <- function(aggregation_params) {
-  # TODO: ADD ASSERTIONS.
-
+get_decade_aggregator <- function(aggregation_params) {
   aux_func <- match.fun(aggregation_params$function_name)
   aux_col <- aggregation_params$column_name
 
-  # TODO: EXTRACT REPEATED CODE.
-  aggregation_strategy <- switch(aggregation_params$function_name,
+  switch(aggregation_params$function_name,
     max = {
-      function(data_object) {
-        data.table::as.data.table(data_object) %>%
-          .[, Decade := paste0((time_period %/% 10) * 10, "s")] %>%
-          .[,
-            .(value = value[
-              get(aux_col) == aux_func(get(aux_col), na.rm = TRUE)
-            ]),
-            by = .(Decade, country_id)
-          ]
+      function(data_table) {
+        data_table[,
+          .(value = value[
+            get(aux_col) == aux_func(get(aux_col), na.rm = TRUE)
+          ]),
+          by = .(Decade, country_id)
+        ]
       }
     },
     mean = {
-      function(data_object) {
-        data.table::as.data.table(data_object) %>%
-          .[, Decade := paste0((time_period %/% 10) * 10, "s")] %>%
-          .[,
-            .(value = aux_func(get(aux_col), na.rm = TRUE)),
-            by = .(Decade, country_id)
-          ]
+      function(data_table) {
+        data_table[,
+          .(value = aux_func(get(aux_col), na.rm = TRUE)),
+          by = .(Decade, country_id)
+        ]
       }
     },
     geometric.mean = {
-      function(data_object) {
-        data.table::as.data.table(data_object) %>%
-          .[, Decade := paste0((time_period %/% 10) * 10, "s")] %>%
-          .[, value := 1 + get(aux_col) / 100] %>%
+      function(data_table) {
+        data_table[, value := 1 + get(aux_col) / 100] %>%
           .[,
-            .(value = aux_func(get(aux_col), na.rm = TRUE)),
+            .(value = aux_func(value, na.rm = TRUE)),
             by = .(Decade, country_id)
           ] %>%
-          .[, value := (get(aux_col) - 1) * 100]
+          .[, value := (value - 1) * 100]
       }
     },
     weighted.mean = {
-      function(data_object) {
-        data.table::as.data.table(data_object) %>%
-          .[, Decade := paste0((time_period %/% 10) * 10, "s")] %>%
-          .[,
-            .(value = aux_func(get(aux_col), weight, na.rm = TRUE)),
-            by = .(Decade, country_id)
-          ]
+      function(data_table) {
+        data_table[,
+          .(value = aux_func(get(aux_col), weight, na.rm = TRUE)),
+          by = .(Decade, country_id)
+        ]
       }
     }
   )
+}
+
+#' @rdname get_decade_aggregator
+add_decade_column <- function(data_table) {
+  # TODO: ADD ASSERTIONS.
+  data_table[, Decade := paste0((time_period %/% 10) * 10, "s")]
+}
+
+#' @rdname get_decade_aggregator
+set_decade_aggregator <- function(aggregation_params) {
+  # TODO: ADD ASSERTIONS.
+
+  aggregation_func <- get_decade_aggregator(aggregation_params)
 
   function(data_object) {
-    aggregation_strategy(
-      copy(try_coerce_to_dt(data_object))
-    )
+    try_coerce_to_dt(data_object) %>%
+      copy() %>%
+      add_decade_column() %>%
+      aggregation_func()
   }
 }
 
-#' @rdname create_decade_aggregator
-#' @export
-run_aggregation_pipeline <- function(aggregation_strategy, data_list) {
+#' @rdname get_decade_aggregator
+run_decade_aggregator <- function(aggregation_strategy, data_list) {
   # TODO: ADD ASSERTIONS.
 
   lapply(data_list, aggregation_strategy) %>%

@@ -8,7 +8,7 @@ standarize_chart <- function(chart) {
 }
 
 # Test objects.
-test_dt_list <- list(
+test_chart_dt_list <- list(
   countryX = data.frame(
     time = c(1, 2, 3, 4, 5, 6),
     value = c(100, 200, 300, 400, 500, 600)
@@ -20,5 +20,5 @@ test_chart_color_theme <- list(
 )
 test_chart_config <- list(
   title = "Chart Tile",
-  yrange = range(test_dt_list[[1]]$value)
+  yrange = range(test_chart_dt_list[[1]]$value)
 )
