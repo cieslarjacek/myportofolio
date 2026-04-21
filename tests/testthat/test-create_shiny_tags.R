@@ -1,4 +1,4 @@
-test_that("str_to_kebab_case() works", {
+test_that("str_to_kebab_case() converts strings properly", {
   test_strings <- c(
     "Jestem Adaś?", "mam#%ha1h bim", "!Hóla, muy@bien_am9igo", "Some Nice name"
   )
@@ -11,7 +11,7 @@ test_that("str_to_kebab_case() works", {
   )
 })
 
-test_that("create_header_hlink() works", {
+test_that("create_header_hlink() returns correct HTML", {
   test_label <- "some_label"
   hyphen_test_label <- str_to_kebab_case(test_label)
 
@@ -25,7 +25,7 @@ test_that("create_header_hlink() works", {
   expect_equal(create_header_hlink(test_label), expected)
 })
 
-test_that("create_example_hlink() works", {
+test_that("create_example_hlink() returns correct HTML", {
   test_label <- "some_label"
   hyphen_test_label <- str_to_kebab_case(test_label)
 
@@ -45,7 +45,7 @@ test_that("create_example_hlink() works", {
   expect_equal(create_example_hlink(test_label), expected)
 })
 
-test_that("create_footer_hlink() works", {
+test_that("create_footer_hlink() returns correct HTML", {
   test_label <- "some_label"
   test_ref <- "https://some_ref"
   hyphen_test_label <- str_to_kebab_case(test_label)

@@ -1,4 +1,4 @@
-# TODO: Add "expect_error" test for "assert_polygon_data" etc.
+# TODO: ADD "expect_error" TESTS FOR "assert_polygon_data" ETC.
 test_that("make_map_color_theme() makes correct color theme", {
   expected <- list(
     clickable = setNames(
