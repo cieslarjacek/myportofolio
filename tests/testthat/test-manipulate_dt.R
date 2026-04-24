@@ -1,4 +1,4 @@
-# TODO: Add "expect_error" to test assertions.
+# TODO: ADD "expect_error" TO TEST ASSERTIONS.
 test_that("extract_dt_list_range() returns correct range without filtering", {
   test_data_list <- list(
     name1 = data.frame(col1 = c(1:5)), name2 = data.frame(col1 = c(4:10))

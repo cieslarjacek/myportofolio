@@ -20,7 +20,8 @@ indicatorSelectorServer <- function(id, choices = set_name_id_indicators()) {
       shiny::req(!is_empty(choices))
       checkmate::assert(
         check_with(checkmate::check_list, choices, check_named_args()),
-        check_with(checkmate::check_character, choices, check_named_args())
+        check_with(checkmate::check_character, choices, check_named_args()),
+        .var.name = checkmate::vname(choices)
       )
 
       shiny::selectInput(
