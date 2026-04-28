@@ -1,4 +1,3 @@
-print("Running LINT check...")
 # Install and use exact "lintr" version.
 if (!requireNamespace("remotes", quietly = TRUE)) {
   install.packages("remotes", repos = Sys.getenv("CRAN_URL"))
@@ -13,14 +12,13 @@ if (!requireNamespace("lintr", quietly = TRUE)) {
 library(lintr)
 
 # Run check.
+message("Running LINT check...")
 out <- lintr::lint_package()
 issue_count <- length(out)
 
+print(out)
+Sys.sleep(1)
+message("Number of issues found: ", issue_count)
 if (issue_count > 0) {
-  print(out)
-  Sys.sleep(1)
-  print(paste0(
-    "Number of issues found: ", issue_count
-  ))
   quit(status = 1)
 }

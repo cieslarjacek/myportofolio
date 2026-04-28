@@ -1,6 +1,7 @@
 linters: local({
     source("ci/custom_linters.R")
     linters_with_defaults(
+      assignment_linter(),
       object_name_linter(
         styles = c("snake_case", "symbols", "CamelCase", "camelCase", "dotted.case")
       ),
