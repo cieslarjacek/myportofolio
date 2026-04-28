@@ -57,4 +57,3 @@ test_data_list <- list(
   clickable = test_df1,
   notclickable = test_df2
 )
-
