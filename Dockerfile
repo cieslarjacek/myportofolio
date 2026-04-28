@@ -47,6 +47,7 @@ RUN apt-get update \
     libproj-dev \
     libtbb-dev \
     libudunits2-dev \
+    libuv1-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ############################################
