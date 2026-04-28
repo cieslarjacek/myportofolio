@@ -2,12 +2,14 @@
   "bioconductor.version": null,
   "external.libraries": [],
   "ignored.packages": [
+    "testthat",
     "covr",
     "lintr",
     "remotes",
     "rex",
     "xml2",
-    "xmlparsedata"
+    "xmlparsedata",
+    "oysteR"
   ],
   "package.dependency.fields": [
     "Imports",
