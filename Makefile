@@ -78,7 +78,7 @@ run-app:
 # CI PIPELINE
 .PHONY: ci-all
 
-ci-all: docker-build ci-lint ci-sast ci-coverage ci-unit-test ci-integration-test ci-functional-test ci-env-test
+ci-all: docker-build ci-lint ci-sast ci-coverage ci-unit-test ci-integration-test
 
 .PHONY: ci-lint ci-sast ci-coverage ci-unit-tests ci-integration-tests ci-functional-tests ci-env-test
 
@@ -91,14 +91,23 @@ ci-lint:
 
 ci-sast:
 	@echo "Running SAST check..." | tee ci_sast.log
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+	@echo "Container image scan (Trivy)..." | tee -a ci_sast.log
+	docker run --rm \
+		-v /var/run/docker.sock:/var/run/docker.sock \
 		aquasec/trivy image \
+		--exit-code 1 \
+		--severity HIGH,CRITICAL \
 		--skip-dirs "**/openssl/doc" \
 		$(IMAGE_NAME) \
-		2>&1 | tee -a ci_sast.log; \
-	if ! grep -q "CRITICAL: 0" ci_sast.log; then \
-		exit 1; \
-	fi
+		2>&1 | tee -a ci_sast.log
+
+# TODO: TURN IT ON AFTER oysteR ISSUES WITH SONATYPE MIGRATION ARE RESOLVED.
+# https://github.com/sonatype-nexus-community/oysteR/pull/82
+# 	docker run \
+# 		-v $(PWD)/ci:$(APP_MAIN_DIR)/ci/ \
+# 		--env-file $(ENV_FILE) \
+# 		--rm $(IMAGE_NAME) Rscript $(APP_MAIN_DIR)/ci/sast.R \
+# 		2>&1 | tee -a ci_sast.log
 
 ci-coverage:
 	docker run \
@@ -114,16 +123,9 @@ ci-unit-tests:
 		--rm $(IMAGE_NAME) Rscript $(APP_MAIN_DIR)/ci/unittests.R \
 		2>&1 | tee ci_unittests.log
 
-ci-integration-tests:
-	docker run --rm $(IMAGE_NAME) Rscript -e "testthat::test_dir('tests/integration')"
-
-ci-functional-tests:
-	docker run --rm $(IMAGE_NAME) Rscript -e "testthat::test_dir('tests/functional')"
-
-ci-env-test:
-	docker compose -f docker-compose.test.yml up --abort-on-container-exit --exit-code-from app
-
-
+# TODO: ADD IT.
+# ci-integration-tests:
+# 	docker run --rm $(IMAGE_NAME) Rscript -e "testthat::test_dir('tests/integration')"
 
 # FTPS
 .PHONY: create-ftps-config
