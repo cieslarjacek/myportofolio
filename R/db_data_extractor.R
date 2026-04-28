@@ -119,7 +119,7 @@ make_query_data <- function(db_schema, indic_id) {
     indicator_dt = indic_id,
     indicator_country_id = db_schema[[indic_id]][1]
   ) %>%
-    glue::glue_sql(., "?", sort_part)
+    glue::glue_sql(., "?", sort_part, .con = DBI::ANSI())
 }
 
 #' @title Database data extractor
