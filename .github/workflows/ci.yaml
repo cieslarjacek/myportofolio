@@ -2,8 +2,7 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches:
-      - develop
+    branches: [ develop ]
   workflow_dispatch:
 
 concurrency:
@@ -71,7 +70,7 @@ jobs:
           retention-days: ${{ vars.IMAGE_RETENTION_PERIOD }}
 
   # 2. Linting
-  lint:
+  linting:
     name: Linting check
     needs: build
     runs-on: ubuntu-latest
@@ -86,15 +85,15 @@ jobs:
       - name: Load image
         run: docker load < /tmp/image.tar.gz
 
-      - name: Run linting
-        run: make ci-lint
+      - name: Run linting check
+        run: make ci-linting
 
-      - name: Upload lint log
+      - name: Upload linting log
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: lint-log
-          path: ci_lint.log
+          name: linting-log
+          path: ci_linting.log
           retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
 
   # 3. SAST (Static Application Security Testing)
@@ -113,7 +112,7 @@ jobs:
       - name: Load image
         run: docker load < /tmp/image.tar.gz
 
-      - name: Run SAST
+      - name: Run SAST check
         run: make ci-sast
 
       - name: Upload SAST log
@@ -127,7 +126,7 @@ jobs:
   # 4. Coverage
   coverage:
     name: Coverage check
-    needs: [lint, sast]
+    needs: [linting, sast]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -140,7 +139,7 @@ jobs:
       - name: Load image
         run: docker load < /tmp/image.tar.gz
 
-      - name: Run coverage
+      - name: Run coverage check
         run: make ci-coverage
 
       - name: Upload coverage log
@@ -152,7 +151,7 @@ jobs:
           retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
 
   # 5. Unit tests
-  unit:
+  unit-tests:
     name: Unit tests check
     needs: coverage
     runs-on: ubuntu-latest
@@ -167,7 +166,7 @@ jobs:
       - name: Load image
         run: docker load < /tmp/image.tar.gz
 
-      - name: Run unit tests
+      - name: Run unit tests check
         run: make ci-unit-tests
 
       - name: Upload unit test log
@@ -197,7 +196,7 @@ jobs:
           echo "| Stage | Log |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|-----|" >> $GITHUB_STEP_SUMMARY
           echo "| Docker build | \`docker_build.log\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Lint         | \`ci_lint.log\`      |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linting      | \`ci_linting.log\`   |" >> $GITHUB_STEP_SUMMARY
           echo "| SAST         | \`ci_sast.log\`      |" >> $GITHUB_STEP_SUMMARY
           echo "| Coverage     | \`ci_coverage.log\`  |" >> $GITHUB_STEP_SUMMARY
           echo "| Unit tests   | \`ci_unittests.log\` |" >> $GITHUB_STEP_SUMMARY
