@@ -56,7 +56,7 @@ RUN apt-get update \
 FROM rbase-stage AS renv-stage
 RUN echo "Stage 2: Installing 'renv'"
 
-ENV CRAN_URL=https://cloud.r-project.org
+ARG CRAN_URL=https://cloud.r-project.org
 RUN R -e "install.packages('remotes', repos = '${CRAN_URL}')"
 RUN R -e "remotes::install_version('renv', version = '${RENV_VERSION}', repos = '${CRAN_URL}')"
 
@@ -68,7 +68,7 @@ RUN echo "Stage 3: Building environment with 'renv'"
 
 WORKDIR ${APP_MAIN_DIR}
 
-# Copy only renv-related files for better layer caching.
+# Copy only "renv" related files for better layer caching.
 COPY renv.lock renv.lock
 COPY renv/ renv/
 
@@ -99,3 +99,15 @@ EXPOSE 3838
 
 ENV APP_PATH=${APP_MAIN_DIR}/inst/shiny/app.R
 CMD ["R", "-e", "shiny::runApp(appDir = Sys.getenv('APP_PATH'), host = '0.0.0.0', port = 3838)"]
+
+############################################
+# Stage 5 - CI pipeline tooling (not shipped to PROD environment)
+############################################
+FROM shiny-app-stage AS ci-stage
+RUN echo "Stage 5: Installing CI pipeline tooling"
+
+WORKDIR ${APP_MAIN_DIR}
+ARG CRAN_URL
+
+COPY ci/r_packages.R ${APP_MAIN_DIR}
+RUN Rscript r_packages.R

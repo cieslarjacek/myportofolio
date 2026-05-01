@@ -1,25 +1,4 @@
-# Install and use exact "data.table", "pkgload" and "testthat" version.
-if (!requireNamespace("remotes", quietly = TRUE)) {
-  install.packages("remotes", repos = Sys.getenv("CRAN_URL"))
-}
-if (!requireNamespace("data.table", quietly = TRUE)) {
-  remotes::install_version(
-    "data.table",
-    version = "1.18.2.1", repos = Sys.getenv("CRAN_URL")
-  )
-}
-if (!requireNamespace("testthat", quietly = TRUE)) {
-  remotes::install_version(
-    "testthat",
-    version = "3.3.2", repos = Sys.getenv("CRAN_URL")
-  )
-}
-
-library(data.table)
-library(testthat)
-
-# Run check.
-print("Running UNIT TESTS check...")
+message("Running UNIT TESTS check...")
 list_reporter <- testthat::ListReporter$new()
 try(
   testthat::test_dir("tests/testthat", reporter = list_reporter),

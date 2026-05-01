@@ -78,16 +78,16 @@ run-app:
 # CI PIPELINE
 .PHONY: ci-all
 
-ci-all: docker-build ci-lint ci-sast ci-coverage ci-unit-test ci-integration-test
+ci-all: docker-build ci-linting ci-sast ci-coverage ci-unit-test ci-integration-test
 
-.PHONY: ci-lint ci-sast ci-coverage ci-unit-tests ci-integration-tests ci-functional-tests ci-env-test
+.PHONY: ci-linting ci-sast ci-coverage ci-unit-tests ci-integration-tests ci-functional-tests ci-env-test
 
-ci-lint:
+ci-linting:
 	docker run \
 		-v $(PWD)/ci:$(APP_MAIN_DIR)/ci/ \
 		-v $(PWD)/.lintr:$(APP_MAIN_DIR)/.lintr \
-		--rm $(IMAGE_NAME) Rscript $(APP_MAIN_DIR)/ci/lint.R \
-		2>&1 | tee ci_lint.log
+		--rm $(IMAGE_NAME) Rscript $(APP_MAIN_DIR)/ci/linting.R \
+		2>&1 | tee ci_linting.log
 
 ci-sast:
 	@echo "Running SAST check..." | tee ci_sast.log

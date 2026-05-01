@@ -1,0 +1,202 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: [ develop ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 0. Pre-flight: scan diff for committed secrets
+  preflight:
+    name: Pre-flight checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for committed secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+          extra_args: --only-verified
+
+  # 1. Docker build
+  build:
+    name: Docker build
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract APP_NAME
+        run: |
+          APP_NAME=$(grep '^Package:' DESCRIPTION | cut -d ' ' -f2)
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+      
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('renv.lock', 'Dockerfile') }}
+          restore-keys: ${{ runner.os }}-buildx-
+
+      - name: Build image
+        run: make docker-build
+
+      - name: Upload build log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: docker-build-log
+          path: docker_build.log
+          retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
+
+      - name: Save image for downstream jobs
+        run: docker save ${{ env.IMAGE_NAME }} | gzip > /tmp/image.tar.gz
+        env:
+          IMAGE_NAME: ${{ env.APP_NAME }}-dev
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp/image.tar.gz
+          retention-days: ${{ vars.IMAGE_RETENTION_PERIOD }}
+
+  # 2. Linting
+  linting:
+    name: Linting check
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Load image
+        run: docker load < /tmp/image.tar.gz
+
+      - name: Run linting check
+        run: make ci-linting
+
+      - name: Upload linting log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linting-log
+          path: ci_linting.log
+          retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
+
+  # 3. SAST (Static Application Security Testing)
+  sast:
+    name: SAST check
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Load image
+        run: docker load < /tmp/image.tar.gz
+
+      - name: Run SAST check
+        run: make ci-sast
+
+      - name: Upload SAST log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sast-log
+          path: ci_sast.log
+          retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
+
+  # 4. Coverage
+  coverage:
+    name: Coverage check
+    needs: [linting, sast]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Load image
+        run: docker load < /tmp/image.tar.gz
+
+      - name: Run coverage check
+        run: make ci-coverage
+
+      - name: Upload coverage log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-log
+          path: ci_coverage.log
+          retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
+
+  # 5. Unit tests
+  unit-tests:
+    name: Unit tests check
+    needs: coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Load image
+        run: docker load < /tmp/image.tar.gz
+
+      - name: Run unit tests check
+        run: make ci-unit-tests
+
+      - name: Upload unit test log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-tests-log
+          path: ci_unittests.log
+          retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
+
+  # 6. Report
+  report:
+    name: Report
+    needs: unit
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download all logs
+        uses: actions/download-artifact@v4
+        with:
+          path: logs/
+
+      - name: Write job summary
+        run: |
+          echo "## CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Log |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker build | \`docker_build.log\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linting      | \`ci_linting.log\`   |" >> $GITHUB_STEP_SUMMARY
+          echo "| SAST         | \`ci_sast.log\`      |" >> $GITHUB_STEP_SUMMARY
+          echo "| Coverage     | \`ci_coverage.log\`  |" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit tests   | \`ci_unittests.log\` |" >> $GITHUB_STEP_SUMMARY
