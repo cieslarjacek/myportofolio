@@ -180,7 +180,7 @@ jobs:
   # 6. Report
   report:
     name: Report
-    needs: unit
+    needs: unit-tests
     runs-on: ubuntu-latest
     if: always()
     steps:
