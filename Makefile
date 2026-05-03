@@ -126,9 +126,3 @@ ci-unit-tests:
 # TODO: ADD IT.
 # ci-integration-tests:
 # 	docker run --rm $(IMAGE_NAME) Rscript -e "testthat::test_dir('tests/integration')"
-
-# FTPS
-.PHONY: create-ftps-config
-
-create-ftps-config:
-	python scripts/create_sftp_config.py $(ENV_FILE)
