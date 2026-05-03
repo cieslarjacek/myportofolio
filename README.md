@@ -2,7 +2,7 @@
 
 An interactive personal portfolio built as a production-grade R package with Shiny — showcasing data science, visualization, and analytical projects.
 
-**Live Demo:** [Coming soon — development and deployment in progress]
+**Live Demo:** [Coming soon — development and deployment in progress.]
 
 ![Status](https://img.shields.io/badge/status-work%20in%20progress-orange)
 ![R](https://img.shields.io/badge/built%20with-R%20Shiny-276DC3?logo=r)
