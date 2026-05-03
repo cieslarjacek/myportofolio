@@ -20,14 +20,27 @@ REBUILD_LOGFILE := docker_rebuild.log
 
 .PHONY: docker-build docker-rebuild run-shiny create-ftps-config
 
+ifdef CI
+  DOCKER_COMMAND = docker
+else
+  DOCKER_COMMAND = sudo docker
+endif
+
+ifdef CI
+  BUILDX_CACHE_FLAGS = \
+    --cache-from type=local,src=/tmp/.buildx-cache \
+    --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max
+else
+  BUILDX_CACHE_FLAGS =
+endif
+
 docker-build:
 	@echo "Building Docker image $(IMAGE_NAME)"
 	@echo "Logs: $(BUILD_LOGFILE)"
 
-	sudo docker buildx build --rm \
+	$(DOCKER_COMMAND) buildx build --rm \
 		--progress=plain \
-		--cache-from type=local,src=/tmp/.buildx-cache \
-		--cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max \
+		$(BUILDX_CACHE_FLAGS) \
 		--build-arg GIT_USER=$(GIT_USER) \
 		--build-arg APP_MAIN_DIR=$(APP_MAIN_DIR) \
 		--build-arg APP_NAME=$(APP_NAME) \
