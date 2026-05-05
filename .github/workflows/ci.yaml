@@ -196,16 +196,25 @@ jobs:
   # 6. Push to GHCR
   push:
     name: Push image to GHCR
-    needs: unit-tests
+    needs: [build, unit-tests]
     runs-on: ubuntu-latest
     steps:
+      - name: Debug outputs
+        run: |
+          echo "image_name: ${{ needs.build.outputs.image_name }}"
+          echo "app_name: ${{ needs.build.outputs.app_name }}"
+          echo "app_version: ${{ needs.build.outputs.app_version }}"
+
       - uses: actions/download-artifact@v4
         with:
           name: docker-image
           path: /tmp
 
       - name: Load image
-        run: docker load < /tmp/image.tar.gz
+        run: |
+          docker load < /tmp/image.tar.gz
+          echo "Loaded images:"
+          docker images
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -216,13 +225,17 @@ jobs:
 
       - name: Push image to GHCR
         run: |
-          IMAGE=ghcr.io/${{ github.actor }}/${{ needs.build.outputs.image_name }}
-          VERSION=${{ needs.build.outputs.app_version }}
-          docker tag ${{ needs.build.outputs.image_name }} ${IMAGE}:${VERSION}
-          docker tag ${{ needs.build.outputs.image_name }} ${IMAGE}:${{ github.sha }}
-          docker push ${IMAGE}:${VERSION}
-          docker push ${IMAGE}:${{ github.sha }}
+          IMAGE_NAME="${{ needs.build.outputs.image_name }}"
+          APP_VERSION="${{ needs.build.outputs.app_version }}"
+          GITHUB_ACTOR="${{ github.actor }}"
+          TARGET="ghcr.io/${GITHUB_ACTOR}/${IMAGE_NAME}"
 
+          echo "Tagging ${IMAGE_NAME} as ${TARGET}:${APP_VERSION}"
+          docker tag ${IMAGE_NAME} ${TARGET}:${APP_VERSION}
+          docker tag ${IMAGE_NAME} ${TARGET}:${{ github.sha }}
+          docker push ${TARGET}:${APP_VERSION}
+          docker push ${TARGET}:${{ github.sha }}
+  
   # 7. Report
   report:
     name: Report
