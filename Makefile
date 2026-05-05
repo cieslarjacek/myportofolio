@@ -20,12 +20,27 @@ REBUILD_LOGFILE := docker_rebuild.log
 
 .PHONY: docker-build docker-rebuild run-shiny create-ftps-config
 
+ifdef CI
+  DOCKER_COMMAND = docker
+else
+  DOCKER_COMMAND = sudo docker
+endif
+
+ifdef CI
+  BUILDX_CACHE_FLAGS = \
+    --cache-from type=local,src=/tmp/.buildx-cache \
+    --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max
+else
+  BUILDX_CACHE_FLAGS =
+endif
+
 docker-build:
 	@echo "Building Docker image $(IMAGE_NAME)"
 	@echo "Logs: $(BUILD_LOGFILE)"
 
-	sudo docker build --rm \
+	$(DOCKER_COMMAND) buildx build --rm \
 		--progress=plain \
+		$(BUILDX_CACHE_FLAGS) \
 		--build-arg GIT_USER=$(GIT_USER) \
 		--build-arg APP_MAIN_DIR=$(APP_MAIN_DIR) \
 		--build-arg APP_NAME=$(APP_NAME) \
@@ -34,6 +49,7 @@ docker-build:
 		--build-arg RENV_VERSION=$(RENV_VERSION) \
 		--file $(DOCKERFILE) \
 		--tag $(IMAGE_NAME) \
+		--load \
 		. \
 		2>&1 | tee $(BUILD_LOGFILE)
 
@@ -41,7 +57,8 @@ docker-rebuild:
 	@echo "Rebuilding Docker image $(IMAGE_NAME) with no cache ..."
 	@echo "Logs: $(REBUILD_LOGFILE)"
 
-	sudo docker build --rm --no-cache \
+	sudo docker build --rm
+		--no-cache \
 		--progress=plain \
 		--build-arg GIT_USER=$(GIT_USER) \
 		--build-arg APP_MAIN_DIR=$(APP_MAIN_DIR) \
@@ -75,10 +92,11 @@ run-app:
 		--env-file $(ENV_FILE) \
 		--rm $(IMAGE_NAME)
 
-# CI PIPELINE
-.PHONY: ci-all
+# LOCAL CI PIPELINE
+.PHONY: ci-all ci-only-checks
 
-ci-all: docker-build ci-linting ci-sast ci-coverage ci-unit-test ci-integration-test
+ci-all: docker-build ci-linting ci-sast ci-coverage ci-unit-tests ci-integration-tests
+ci-checks-only: ci-linting ci-sast ci-coverage ci-unit-tests ci-integration-tests
 
 .PHONY: ci-linting ci-sast ci-coverage ci-unit-tests ci-integration-tests ci-functional-tests ci-env-test
 
