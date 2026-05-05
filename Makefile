@@ -18,7 +18,7 @@ DOCKERFILE := Dockerfile
 BUILD_LOGFILE := docker_build.log
 REBUILD_LOGFILE := docker_rebuild.log
 
-.PHONY: docker-build docker-rebuild run-shiny create-ftps-config
+.PHONY: docker-build docker-rebuild
 
 ifdef CI
   DOCKER_COMMAND = docker
@@ -98,7 +98,7 @@ run-app:
 ci-all: docker-build ci-linting ci-sast ci-coverage ci-unit-tests ci-integration-tests
 ci-checks-only: ci-linting ci-sast ci-coverage ci-unit-tests ci-integration-tests
 
-.PHONY: ci-linting ci-sast ci-coverage ci-unit-tests ci-integration-tests ci-functional-tests ci-env-test
+.PHONY: ci-linting ci-sast ci-coverage ci-unit-tests ci-integration-tests
 
 ci-linting:
 	docker run \
