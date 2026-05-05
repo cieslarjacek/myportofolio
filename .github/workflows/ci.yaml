@@ -2,7 +2,8 @@ name: CI Pipeline
 
 on:
   pull_request:
-    branches: [ develop ]
+    branches:
+      - develop
   workflow_dispatch:
 
 concurrency:
@@ -32,14 +33,23 @@ jobs:
     name: Docker build
     needs: preflight
     runs-on: ubuntu-latest
+    outputs:
+      app_name: ${{ steps.app_specs.outputs.app_name }}
+      app_version: ${{ steps.app_specs.outputs.app_version }}
+      image_name: ${{ steps.app_specs.outputs.image_name }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract APP_NAME
+      - name: Extract APP specs
+        id: app_specs
         run: |
           APP_NAME=$(grep '^Package:' DESCRIPTION | cut -d ' ' -f2)
-          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
-      
+          APP_VERSION=$(grep '^Version:' DESCRIPTION | cut -d ' ' -f2)
+          IMAGE_NAME="${APP_NAME}-dev"
+          echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+          echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
+          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
@@ -67,9 +77,7 @@ jobs:
           retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
 
       - name: Save image for downstream jobs
-        run: docker save ${{ env.IMAGE_NAME }} | gzip > /tmp/image.tar.gz
-        env:
-          IMAGE_NAME: ${{ env.APP_NAME }}-dev
+        run: docker save ${{ steps.app_specs.outputs.image_name }} | gzip > /tmp/image.tar.gz
 
       - uses: actions/upload-artifact@v4
         with:
@@ -134,7 +142,7 @@ jobs:
   # 4. Coverage
   coverage:
     name: Coverage check
-    needs: [linting, sast]
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -161,7 +169,7 @@ jobs:
   # 5. Unit tests
   unit-tests:
     name: Unit tests check
-    needs: coverage
+    needs: [linting, sast, coverage]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -185,10 +193,53 @@ jobs:
           path: ci_unittests.log
           retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
 
-  # 6. Report
+  # 6. Push to GHCR
+  push:
+    name: Push image to GHCR
+    needs: [build, unit-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug outputs
+        run: |
+          echo "image_name: ${{ needs.build.outputs.image_name }}"
+          echo "app_name: ${{ needs.build.outputs.app_name }}"
+          echo "app_version: ${{ needs.build.outputs.app_version }}"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Load image
+        run: |
+          docker load < /tmp/image.tar.gz
+          echo "Loaded images:"
+          docker images
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image to GHCR
+        run: |
+          IMAGE_NAME="${{ needs.build.outputs.image_name }}"
+          APP_VERSION="${{ needs.build.outputs.app_version }}"
+          GITHUB_ACTOR="${{ github.actor }}"
+          TARGET="ghcr.io/${GITHUB_ACTOR}/${IMAGE_NAME}"
+
+          echo "Tagging ${IMAGE_NAME} as ${TARGET}:${APP_VERSION}"
+          docker tag ${IMAGE_NAME} ${TARGET}:${APP_VERSION}
+          docker tag ${IMAGE_NAME} ${TARGET}:${{ github.sha }}
+          docker push ${TARGET}:${APP_VERSION}
+          docker push ${TARGET}:${{ github.sha }}
+  
+  # 7. Report
   report:
     name: Report
-    needs: unit-tests
+    needs: [unit-tests, push]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -201,10 +252,11 @@ jobs:
         run: |
           echo "## CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Stage | Log |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|-----|" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker build | \`docker_build.log\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Linting      | \`ci_linting.log\`   |" >> $GITHUB_STEP_SUMMARY
-          echo "| SAST         | \`ci_sast.log\`      |" >> $GITHUB_STEP_SUMMARY
-          echo "| Coverage     | \`ci_coverage.log\`  |" >> $GITHUB_STEP_SUMMARY
-          echo "| Unit tests   | \`ci_unittests.log\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage        | Log                       |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------------|---------------------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker build | \`docker_build.log\`      |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linting      | \`ci_linting.log\`        |" >> $GITHUB_STEP_SUMMARY
+          echo "| SAST         | \`ci_sast.log\`           |" >> $GITHUB_STEP_SUMMARY
+          echo "| Coverage     | \`ci_coverage.log\`       |" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit tests   | \`ci_unittests.log\`      |" >> $GITHUB_STEP_SUMMARY
+          echo "| GHCR push    | ${{ needs.push.result }}  |" >> $GITHUB_STEP_SUMMARY
