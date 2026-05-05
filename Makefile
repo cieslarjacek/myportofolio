@@ -27,9 +27,11 @@ else
 endif
 
 ifdef CI
+  GHCR_CACHE_IMAGE := \
+  	ghcr.io/$(shell echo $$GITHUB_REPOSITORY)/$(IMAGE_NAME):buildcache
   BUILDX_CACHE_FLAGS = \
-    --cache-from type=local,src=/tmp/.buildx-cache \
-    --cache-to type=local,dest=/tmp/.buildx-cache-new,mode=max
+    --cache-from type=registry,ref=$(GHCR_CACHE_IMAGE) \
+    --cache-to type=registry,ref=$(GHCR_CACHE_IMAGE),mode=max
 else
   BUILDX_CACHE_FLAGS =
 endif
