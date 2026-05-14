@@ -19,12 +19,15 @@ library(shiny)
 library(shinycssloaders)
 library(shinyWidgets)
 
-if (!as.logical(Sys.getenv("LOCAL_RUN"))) {
-  # TODO: SERVER - SOURCE AS SECRETS.
-}
-
 app_settings <- myportfolio::get_app_settings()
 color_palette <- app_settings$color_palette
+
+if (as.logical(Sys.getenv("LOCAL_RUN"))) {
+  app_secrets <- Sys.getenv(app_settings$secret_names)
+} else {
+  secret_reader <- SecretReader$new(Sys.getenv("DEPLOYMENT_ENV"))
+  app_secrets <- secret_reader$get_all_secrets()
+}
 
 # IMPORTANT: Keep this at the end to avoid errors in `future` functions.
 future::plan(future::multisession)

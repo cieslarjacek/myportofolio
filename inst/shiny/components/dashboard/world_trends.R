@@ -62,11 +62,11 @@ world_geometry_data <- shiny::reactive({
     function(target_name) {
       db_connection <- DBI::dbConnect(
         RMariaDB::MariaDB(),
-        dbname = Sys.getenv("DB_NAME"),
-        host = Sys.getenv("DB_HOST"),
-        port = as.integer(Sys.getenv("DB_PORT")),
-        user = Sys.getenv("DB_USERNAME"),
-        password = Sys.getenv("DB_PW")
+        dbname = app_secrets[["DB_NAME"]],
+        host = app_secrets[["DB_HOST"]],
+        port = as.integer(app_secrets[["DB_PORT"]]),
+        user = app_secrets[["DB_USERNAME"]],
+        password = app_secrets[["DB_PW"]]
       )
 
       db_extractor <- myportfolio::DbDataExtractor$new(
@@ -187,11 +187,11 @@ shiny::observeEvent(map_click_registry$add$id, {
   # THE CHART SHOULD GET THE DATA BEFORE TABLE.
   db_connection <- DBI::dbConnect(
     RMariaDB::MariaDB(),
-    dbname = Sys.getenv("DB_NAME"),
-    host = Sys.getenv("DB_HOST"),
-    port = as.integer(Sys.getenv("DB_PORT")),
-    user = Sys.getenv("DB_USERNAME"),
-    password = Sys.getenv("DB_PW")
+    dbname = app_secrets[["DB_NAME"]],
+    host = app_secrets[["DB_HOST"]],
+    port = as.integer(app_secrets[["DB_PORT"]]),
+    user = app_secrets[["DB_USERNAME"]],
+    password = app_secrets[["DB_PW"]]
   )
   db_extractor <- myportfolio::DbDataExtractor$new(
     db_connection, sql_db_schema()

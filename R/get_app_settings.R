@@ -17,6 +17,8 @@
 #' * "export_types" is a named character vector where the element names are
 #' data export format types (e.g. png, csv, json) and the elements are related
 #' labels (e.g. "CSV data").
+#' * "secret_names" is a character vector of secret names in the vault which
+#' are also environment variables during local run.
 #' * "worldbank_indicator$name_id" is a named list where the elements are
 #' data indicator ids and the element names are indicator "human friendly"
 #' names.
@@ -41,6 +43,7 @@ get_app_settings <- function() {
     data_labels = set_data_labels(),
     db_schema_registry = set_db_schema_registry(),
     export_types = set_export_types(),
+    secret_names = set_secret_names(),
     worldbank_indicator = list(
       name_id = set_name_id_indicators(),
       id_aggr = set_id_aggr_indicators()
@@ -112,6 +115,11 @@ set_name_id_indicators <- function() {
     `Nurses and midwives (per 1,000 people)` = "wb_wdi_sh_med_numw_p3",
     `Mortality rate, infant (per 1,000 live births)` = "wb_wdi_sp_dyn_imrt_in"
   )
+}
+
+#' @rdname get_app_settings
+set_secret_names <- function() {
+  c("DB_HOST", "DB_PORT", "DB_NAME", "DB_USERNAME", "DB_PW")
 }
 
 #' @rdname get_app_settings
