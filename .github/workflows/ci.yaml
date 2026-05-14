@@ -4,17 +4,27 @@ on:
   pull_request:
     branches:
       - develop
+      - release
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
   cancel-in-progress: true
 
+# Pipeline logic:
+#   feature/* >>> develop : full pipeline
+#   release/* >>> develop : preflight only
+#   bugfix/*  >>> release : full pipeline
+#   hotfix/*  >>> release : full pipeline
+
 jobs:
   # 0. Pre-flight: scan diff for committed secrets
   preflight:
     name: Pre-flight checks
     runs-on: ubuntu-latest
+    if: |
+      (github.base_ref == 'develop' && (startsWith(github.head_ref, 'feature/') || startsWith(github.head_ref, 'release/'))) ||
+      (github.base_ref == 'release' && (startsWith(github.head_ref, 'bugfix/')  || startsWith(github.head_ref, 'hotfix/')))
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,14 +32,25 @@ jobs:
 
       - name: Validate source branch
         run: |
+          BASE="${{ github.base_ref }}"
           BRANCH="${{ github.head_ref }}"
-          if [[ ! "$BRANCH" =~ ^(feature|release)/.+ ]]; then
-            echo "PRs must originate from a 'feature/*' or 'release/*' branch."
-            echo "   Current branch: $BRANCH"
-            exit 1
+
+          if [[ "$BASE" == "develop" ]]; then
+            if [[ ! "$BRANCH" =~ ^(feature|release)/.+ ]]; then
+              echo "PRs to 'develop' must originate from a 'feature/*' or 'release/*' branch."
+              echo "Current branch: $BRANCH"
+              exit 1
+            fi
+          elif [[ "$BASE" == "release" ]]; then
+            if [[ ! "$BRANCH" =~ ^(bugfix|hotfix)/.+ ]]; then
+              echo "PRs to 'release' must originate from a 'bugfix/*' or 'hotfix/*' branch."
+              echo "Current branch: $BRANCH"
+              exit 1
+            fi
           fi
-          echo "Branch '$BRANCH' is valid."
-      
+
+          echo "Branch '$BRANCH' → '$BASE' is valid."
+
       - name: Scan for committed secrets
         uses: trufflesecurity/trufflehog@main
         with:
@@ -43,6 +64,9 @@ jobs:
     name: Docker build
     needs: preflight
     runs-on: ubuntu-latest
+    if: |
+      (github.base_ref == 'develop' && startsWith(github.head_ref, 'feature/')) ||
+      (github.base_ref == 'release' && (startsWith(github.head_ref, 'bugfix/') || startsWith(github.head_ref, 'hotfix/')))
     outputs:
       app_name: ${{ steps.app_specs.outputs.app_name }}
       app_version: ${{ steps.app_specs.outputs.app_version }}
@@ -255,8 +279,12 @@ jobs:
           echo "| Unit tests   | \`ci_unittests.log\`      |" >> $GITHUB_STEP_SUMMARY
           echo "| GHCR push    | ${{ needs.push.result }}  |" >> $GITHUB_STEP_SUMMARY
 
-      - name: Delete 'feature/*' branch after merge
-        if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'feature/')
+      - name: Delete short-lived branch after merge
+        if: |
+          github.event.pull_request.merged == true &&
+          (startsWith(github.head_ref, 'feature/') ||
+           startsWith(github.head_ref, 'bugfix/')  ||
+           startsWith(github.head_ref, 'hotfix/'))
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

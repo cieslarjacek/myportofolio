@@ -1,8 +1,8 @@
 # My R Shiny Portfolio
 
-An interactive personal portfolio built as a production-grade R package with Shiny — showcasing data science, visualization, and analytical projects.
+An interactive personal portfolio built as a production-grade R package with Shiny - showcasing data science, visualization, and analytical projects.
 
-**Live Demo:** [Coming soon — development and deployment in progress.]
+**Live Demo:** [Coming soon - development and deployment in progress.]
 
 ![Status](https://img.shields.io/badge/status-work%20in%20progress-orange)
 ![R](https://img.shields.io/badge/built%20with-R%20Shiny-276DC3?logo=r)
@@ -18,7 +18,7 @@ An interactive personal portfolio built as a production-grade R package with Shi
 
 ## About This Project
 
-This portfolio is an interactive R Shiny web application — and a demonstration of skills in itself. Rather than a static website, it is built with the same tools and standards used in real client projects: interactive maps, dynamic charts, database connectivity, and a modular UI.
+This portfolio is an interactive R Shiny web application - and a demonstration of skills in itself. Rather than a static website, it is built with the same tools and standards used in real client projects: interactive maps, dynamic charts, database connectivity, and a modular UI.
 
 What sets this project apart is its engineering approach. The app is structured as a **proper R package** (`myportfolio`), complete with a `DESCRIPTION` file, Shiny modules, a full `testthat` test suite, CI scripts, and `renv` for reproducible dependency management.
 
