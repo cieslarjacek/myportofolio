@@ -74,7 +74,7 @@ docker-rebuild:
 		2>&1 | tee $(REBUILD_LOGFILE)
 
 # DOCKER RUN
-.PHONY: run-bash run-r run-app
+.PHONY: run-bash run-r ssh-tunnel-open ssh-tunnel-close run-app 
 
 run-bash:
 	sudo docker run \
@@ -88,11 +88,43 @@ run-r:
 		--env-file $(ENV_FILE) \
 		--rm -it $(IMAGE_NAME) R --no-save --no-restore
 
-run-app:
-	sudo docker run \
+VAULT_SSH_USER := $(shell grep '^VAULT_SSH_USER=' $(ENV_FILE) | cut -d '=' -f2)
+VAULT_SSH_HOST := $(shell grep '^VAULT_SSH_HOST=' $(ENV_FILE) | cut -d '=' -f2)
+VAULT_SSH_PORT := $(shell grep '^VAULT_SSH_PORT=' $(ENV_FILE) | cut -d '=' -f2)
+VAULT_SSH_TUNNEL_PORT := $(shell grep '^VAULT_SSH_TUNNEL_PORT=' $(ENV_FILE) | cut -d '=' -f2)
+
+# tunnel-open:
+# 	@echo "Opening SSH tunnel to Vault..."
+# 	@ssh -f -N \
+# 		-p $(VAULT_SSH_PORT) \
+# 		-L $(VAULT_SSH_TUNNEL_PORT):localhost:$(VAULT_SSH_TUNNEL_PORT) \
+# 		$(VAULT_SSH_USER)@$(VAULT_SSH_HOST) \
+# 		-o ExitOnForwardFailure=yes \
+# 		-o StrictHostKeyChecking=no
+# 	@echo "Tunnel opened"
+
+ssh-tunnel-open:
+	@echo "Opening SSH tunnel to Vault..."
+	@ssh -f -N \
+		-p $(VAULT_SSH_PORT) \
+		-L 0.0.0.0:$(VAULT_SSH_TUNNEL_PORT):localhost:$(VAULT_SSH_TUNNEL_PORT) \
+		$(VAULT_SSH_USER)@$(VAULT_SSH_HOST) \
+		-o ExitOnForwardFailure=yes \
+		-o StrictHostKeyChecking=no
+	@echo "Tunnel opened"
+
+ssh-tunnel-close:
+	@echo "Closing SSH tunnel..."
+	@pkill -f "ssh -f -N -p $(VAULT_SSH_PORT) -L $(VAULT_SSH_TUNNEL_PORT)" || true
+	@echo "Tunnel closed"
+
+run-app: ssh-tunnel-open
+	$(DOCKER_COMMAND) run \
 		-p 3838:3838 \
 		--env-file $(ENV_FILE) \
-		--rm $(IMAGE_NAME)
+		--add-host host.docker.internal:host-gateway \
+		--rm $(IMAGE_NAME); \
+	$(MAKE) ssh-tunnel-close
 
 # LOCAL CI PIPELINE
 .PHONY: ci-all ci-only-checks
