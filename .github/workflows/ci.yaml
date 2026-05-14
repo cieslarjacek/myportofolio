@@ -20,6 +20,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Validate source branch
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          if [[ ! "$BRANCH" =~ ^(feature|release)/.+ ]]; then
+            echo "PRs must originate from a 'feature/*' or 'release/*' branch."
+            echo "   Current branch: $BRANCH"
+            exit 1
+          fi
+          echo "Branch '$BRANCH' is valid."
+      
       - name: Scan for committed secrets
         uses: trufflesecurity/trufflehog@main
         with:
@@ -244,3 +254,15 @@ jobs:
           echo "| Coverage     | \`ci_coverage.log\`       |" >> $GITHUB_STEP_SUMMARY
           echo "| Unit tests   | \`ci_unittests.log\`      |" >> $GITHUB_STEP_SUMMARY
           echo "| GHCR push    | ${{ needs.push.result }}  |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Delete 'feature/*' branch after merge
+        if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'feature/')
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.git.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `heads/${context.payload.pull_request.head.ref}`
+            });
