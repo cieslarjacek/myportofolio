@@ -165,6 +165,6 @@
   vertical-align: top;
 }
 
-#copr-text {
+#copr-text-main {
   font-size: clamp(var(--fs-small-min), var(--fs-small-base), var(--fs-small-max));
 }

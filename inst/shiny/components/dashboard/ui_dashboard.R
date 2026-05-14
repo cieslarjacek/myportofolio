@@ -115,5 +115,11 @@ dashboard_page <- bslib::page_fluid(
       )
     )
   ),
+  # Body footer.
+  shiny::tags$footer(
+    shiny::tags$div(
+      class = "copr-text", myportfolio::create_copyright_note()
+    )
+  ),
   shiny::tags$script(src = "js/dashboard_events.js")
 )

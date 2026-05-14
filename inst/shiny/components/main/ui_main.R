@@ -98,7 +98,7 @@ main_page <- shiny::fluidPage(
         )
       ),
       shiny::tags$div(
-        id = "copr-text", "Copyrights 2025"
+        id = "copr-text-main", myportfolio::create_copyright_note()
       )
     )
   )
