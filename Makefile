@@ -59,7 +59,7 @@ docker-rebuild:
 	@echo "Rebuilding Docker image $(IMAGE_NAME) with no cache ..."
 	@echo "Logs: $(REBUILD_LOGFILE)"
 
-	sudo docker build --rm
+	sudo docker build --rm \
 		--no-cache \
 		--progress=plain \
 		--build-arg GIT_USER=$(GIT_USER) \
@@ -92,16 +92,6 @@ VAULT_SSH_USER := $(shell grep '^VAULT_SSH_USER=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_HOST := $(shell grep '^VAULT_SSH_HOST=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_PORT := $(shell grep '^VAULT_SSH_PORT=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_TUNNEL_PORT := $(shell grep '^VAULT_SSH_TUNNEL_PORT=' $(ENV_FILE) | cut -d '=' -f2)
-
-# tunnel-open:
-# 	@echo "Opening SSH tunnel to Vault..."
-# 	@ssh -f -N \
-# 		-p $(VAULT_SSH_PORT) \
-# 		-L $(VAULT_SSH_TUNNEL_PORT):localhost:$(VAULT_SSH_TUNNEL_PORT) \
-# 		$(VAULT_SSH_USER)@$(VAULT_SSH_HOST) \
-# 		-o ExitOnForwardFailure=yes \
-# 		-o StrictHostKeyChecking=no
-# 	@echo "Tunnel opened"
 
 ssh-tunnel-open:
 	@echo "Opening SSH tunnel to Vault..."
