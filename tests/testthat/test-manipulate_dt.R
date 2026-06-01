@@ -67,7 +67,8 @@ test_that("convert_dt_to_json() returns correct JSON object", {
     time = rep(c(2, 3, 4), 2)
   )
   expected <- jsonlite::toJSON(
-    test_df, dataframe = "rows", pretty = FALSE, auto_unbox = TRUE, na = "null"
+    test_df,
+    dataframe = "rows", pretty = FALSE, auto_unbox = TRUE, na = "null"
   )
 
   expect_equal(convert_dt_to_json(test_df), expected)
@@ -150,7 +151,7 @@ test_that("set_decade_aggregator() gives proper function - 'mean'", {
   expect_equal(actual_aggregation(test_decade_dt1), expected)
 })
 
-test_that("set_decade_aggregator() gives proper function - 'weighted.mean'",{
+test_that("set_decade_aggregator() gives proper function - 'weighted.mean'", {
   expected <- test_decade_dt1[, .(
     value = sum(value * weight) / sum(weight)
   ), by = .(check_decade, country_id)]

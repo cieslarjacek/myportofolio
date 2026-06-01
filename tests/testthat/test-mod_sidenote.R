@@ -4,9 +4,12 @@ test_that("sidenoteUI() creates expected HTML", {
 
 test_that("output$sidenote renders the injected message as HTML", {
   shiny::testServer(
-    sidenoteServer, args = list(message = "Hello <b>world</b>"), {
+    sidenoteServer,
+    args = list(message = "Hello <b>world</b>"),
+    {
       expect_equal(as.character(output$sidenote$html), "Hello <b>world</b>")
-  })
+    }
+  )
 })
 
 test_that("non-character message throws error before the module starts", {

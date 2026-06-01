@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-# INITIAL SETUP
+# GENERAL SETUP
 # Always make sure that the correct environment is set up.
 ENV_NAME := dev
 ENV_FILE := $(ENV_NAME).env
@@ -12,34 +12,42 @@ APP_VERSION := $(shell grep '^Version:' DESCRIPTION | cut -d ' ' -f2)
 R_VERSION := $(shell jq -r '.R.Version' renv.lock)
 RENV_VERSION := $(shell jq -r '.Packages.renv.Version' renv.lock)
 
-# DOCKER BUILD
+# DOCKER BUILD SETUP
 IMAGE_NAME := $(APP_NAME)-$(ENV_NAME)
+CI_IMAGE_NAME := $(APP_NAME)-ci
 DOCKERFILE := Dockerfile
 BUILD_LOGFILE := docker_build.log
 REBUILD_LOGFILE := docker_rebuild.log
 
-.PHONY: docker-build docker-rebuild
+.PHONY: docker-build docker-build-ci docker-rebuild
 
 ifdef CI
-  DOCKER_COMMAND = docker
+  DOCKER_COMMAND := docker
 else
-  DOCKER_COMMAND = sudo docker
+  DOCKER_COMMAND := sudo -E docker
 endif
 
 ifdef CI
   GHCR_CACHE_IMAGE := \
   	ghcr.io/$(shell echo $$GITHUB_REPOSITORY)/$(IMAGE_NAME):buildcache
-  BUILDX_CACHE_FLAGS = \
+  BUILDX_CACHE_FLAGS := \
     --cache-from type=registry,ref=$(GHCR_CACHE_IMAGE) \
     --cache-to type=registry,ref=$(GHCR_CACHE_IMAGE),mode=max
 else
-  BUILDX_CACHE_FLAGS =
+  BUILDX_CACHE_FLAGS :=
 endif
 
-docker-build:
-	@echo "Building Docker image $(IMAGE_NAME)"
-	@echo "Logs: $(BUILD_LOGFILE)"
+# Export variables for docker-compose.
+export APP_MAIN_DIR
+export CI_IMAGE_NAME
+export ENV_FILE
+export IMAGE_NAME
 
+# DOCKER BUILD SETUP
+# Production image.
+docker-build:
+	@echo "Building Docker image $(IMAGE_NAME)..."
+	@echo "Logs: $(BUILD_LOGFILE)"
 	$(DOCKER_COMMAND) buildx build --rm \
 		--progress=plain \
 		$(BUILDX_CACHE_FLAGS) \
@@ -55,11 +63,18 @@ docker-build:
 		. \
 		2>&1 | tee $(BUILD_LOGFILE)
 
-docker-rebuild:
-	@echo "Rebuilding Docker image $(IMAGE_NAME) with no cache ..."
-	@echo "Logs: $(REBUILD_LOGFILE)"
+docker-build-ci:
+	@echo "Building CI Docker image $(CI_IMAGE_NAME)..."
+	@echo "Logs: $(BUILD_LOGFILE)"
+	$(DOCKER_COMMAND) buildx use default
+	$(DOCKER_COMMAND) compose --profile ci build --pull=false ci \
+		2>&1 | tee -a $(BUILD_LOGFILE)
 
-	sudo docker build --rm \
+
+docker-rebuild:
+	@echo "Rebuilding Docker image $(IMAGE_NAME) with no cache..."
+	@echo "Logs: $(REBUILD_LOGFILE)"
+	$(DOCKER_COMMAND) buildx build --rm \
 		--no-cache \
 		--progress=plain \
 		--build-arg GIT_USER=$(GIT_USER) \
@@ -70,23 +85,18 @@ docker-rebuild:
 		--build-arg RENV_VERSION=$(RENV_VERSION) \
 		--file $(DOCKERFILE) \
 		--tag $(IMAGE_NAME) \
-        . \
+		--load \
+		. \
 		2>&1 | tee $(REBUILD_LOGFILE)
 
 # DOCKER RUN
 .PHONY: run-bash run-r ssh-tunnel-open ssh-tunnel-close run-app 
 
 run-bash:
-	sudo docker run \
-		-p 3838:3838 \
-		--env-file $(ENV_FILE) \
-		--rm -it $(IMAGE_NAME) /bin/bash
+	$(DOCKER_COMMAND) compose --profile ci run --rm ci /bin/bash
 
 run-r:
-	sudo docker run \
-		-p 3838:3838 \
-		--env-file $(ENV_FILE) \
-		--rm -it $(IMAGE_NAME) R --no-save --no-restore
+	$(DOCKER_COMMAND) compose --profile ci run --rm ci R --no-save --no-restore
 
 VAULT_SSH_USER := $(shell grep '^VAULT_SSH_USER=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_HOST := $(shell grep '^VAULT_SSH_HOST=' $(ENV_FILE) | cut -d '=' -f2)
@@ -109,26 +119,18 @@ ssh-tunnel-close:
 	@echo "Tunnel closed"
 
 run-app: ssh-tunnel-open
-	$(DOCKER_COMMAND) run \
-		-p 3838:3838 \
-		--env-file $(ENV_FILE) \
-		--add-host host.docker.internal:host-gateway \
-		--rm $(IMAGE_NAME); \
+	$(DOCKER_COMMAND) compose up shiny-app; \
 	$(MAKE) ssh-tunnel-close
 
 # LOCAL CI PIPELINE
 .PHONY: ci-all ci-only-checks
 
-ci-all: docker-build ci-linting ci-sast ci-coverage ci-unit-tests ci-integration-tests
+ci-all: docker-build docker-build-ci ci-linting ci-sast ci-coverage ci-unit-tests ci-integration-tests
 ci-checks-only: ci-linting ci-sast ci-coverage ci-unit-tests ci-integration-tests
 
-.PHONY: ci-linting ci-sast ci-coverage ci-unit-tests ci-integration-tests
-
 ci-linting:
-	docker run \
-		-v $(PWD)/ci:$(APP_MAIN_DIR)/ci/ \
-		-v $(PWD)/.lintr:$(APP_MAIN_DIR)/.lintr \
-		--rm $(IMAGE_NAME) Rscript $(APP_MAIN_DIR)/ci/linting.R \
+	$(DOCKER_COMMAND) compose --profile ci run --rm ci \
+		Rscript $(APP_MAIN_DIR)/ci/linting.R \
 		2>&1 | tee ci_linting.log
 
 ci-sast:
@@ -142,29 +144,23 @@ ci-sast:
 		--skip-dirs "**/openssl/doc" \
 		$(IMAGE_NAME) \
 		2>&1 | tee -a ci_sast.log
-
 # TODO: TURN IT ON AFTER oysteR ISSUES WITH SONATYPE MIGRATION ARE RESOLVED.
 # https://github.com/sonatype-nexus-community/oysteR/pull/82
-# 	docker run \
-# 		-v $(PWD)/ci:$(APP_MAIN_DIR)/ci/ \
-# 		--env-file $(ENV_FILE) \
-# 		--rm $(IMAGE_NAME) Rscript $(APP_MAIN_DIR)/ci/sast.R \
-# 		2>&1 | tee -a ci_sast.log
+#	$(DOCKER_COMMAND) compose --profile ci run --rm ci \
+#		Rscript $(APP_MAIN_DIR)/ci/sast.R \
+#		2>&1 | tee -a ci_sast.log
 
 ci-coverage:
-	docker run \
-		-v $(PWD)/ci:$(APP_MAIN_DIR)/ci/ \
-		-v $(PWD)/tests:$(APP_MAIN_DIR)/tests/ \
-		--rm $(IMAGE_NAME) Rscript $(APP_MAIN_DIR)/ci/coverage.R \
+	$(DOCKER_COMMAND) compose --profile ci run --rm ci \
+		Rscript $(APP_MAIN_DIR)/ci/coverage.R \
 		2>&1 | tee ci_coverage.log
 
 ci-unit-tests:
-	docker run \
-		-v $(PWD)/ci:$(APP_MAIN_DIR)/ci/ \
-		-v $(PWD)/tests:$(APP_MAIN_DIR)/tests/ \
-		--rm $(IMAGE_NAME) Rscript $(APP_MAIN_DIR)/ci/unittests.R \
+	$(DOCKER_COMMAND) compose --profile ci run --rm ci \
+		Rscript $(APP_MAIN_DIR)/ci/unittests.R \
 		2>&1 | tee ci_unittests.log
 
 # TODO: ADD IT.
 # ci-integration-tests:
-# 	docker run --rm $(IMAGE_NAME) Rscript -e "testthat::test_dir('tests/integration')"
+# 	$(DOCKER_COMMAND) compose --profile ci run --rm ci \
+# 		Rscript -e "testthat::test_dir('tests/integration')"
