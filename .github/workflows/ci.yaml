@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - develop
-      - release
+      - release/*
   workflow_dispatch:
 
 concurrency:
@@ -12,10 +12,10 @@ concurrency:
   cancel-in-progress: true
 
 # Pipeline logic:
-#   feature/* >>> develop  : full CI, version format X.X.X.XXXX
-#   release/* >>> develop  : preflight only, no deploy
-#   bugfix/*  >>> release  : full CI, version format X.X.X
-#   hotfix/*  >>> release  : full CI, version format X.X.X
+#   feature/* >>> develop       : full CI, version format X.X.X.XXXX, push as myportfolio-dev
+#   release/* >>> develop       : preflight only, no deploy
+#   bugfix/*  >>> release/X.X.X : full CI, version format X.X.X, push as myportfolio-test
+#   hotfix/*  >>> release/X.X.X : full CI, version format X.X.X, push as myportfolio-test
 
 jobs:
   # 0. Pre-flight
@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       (github.base_ref == 'develop' && (startsWith(github.head_ref, 'feature/') || startsWith(github.head_ref, 'release/'))) ||
-      (github.base_ref == 'release' && (startsWith(github.head_ref, 'bugfix/')  || startsWith(github.head_ref, 'hotfix/')))
+      (startsWith(github.base_ref, 'release/') && (startsWith(github.head_ref, 'bugfix/') || startsWith(github.head_ref, 'hotfix/')))
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,9 +40,9 @@ jobs:
               echo "PRs to 'develop' must originate from 'feature/*' or 'release/*'."
               exit 1
             fi
-          elif [[ "$BASE" == "release" ]]; then
+          elif [[ "$BASE" =~ ^release/.+ ]]; then
             if [[ ! "$BRANCH" =~ ^(bugfix|hotfix)/.+ ]]; then
-              echo "PRs to 'release' must originate from 'bugfix/*' or 'hotfix/*'."
+              echo "PRs to 'release/X.X.X' must originate from 'bugfix/*' or 'hotfix/*'."
               exit 1
             fi
           fi
@@ -63,10 +63,11 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       (github.base_ref == 'develop' && startsWith(github.head_ref, 'feature/')) ||
-      (github.base_ref == 'release' && (startsWith(github.head_ref, 'bugfix/') || startsWith(github.head_ref, 'hotfix/')))
+      (startsWith(github.base_ref, 'release/') && (startsWith(github.head_ref, 'bugfix/') || startsWith(github.head_ref, 'hotfix/')))
     outputs:
       app_name: ${{ steps.app_specs.outputs.app_name }}
       app_version: ${{ steps.app_specs.outputs.app_version }}
+      env_name: ${{ steps.app_specs.outputs.env_name }}
       image_name: ${{ steps.app_specs.outputs.image_name }}
     steps:
       - uses: actions/checkout@v4
@@ -76,10 +77,18 @@ jobs:
         run: |
           APP_NAME=$(grep '^Package:' DESCRIPTION | cut -d ' ' -f2)
           APP_VERSION=$(grep '^Version:' DESCRIPTION | cut -d ' ' -f2)
-          IMAGE_NAME="${APP_NAME}-dev"
+
+          if [[ "${{ github.base_ref }}" == "develop" ]]; then
+            ENV_NAME="dev"
+          elif [[ "${{ github.base_ref }}" =~ ^release/.+ ]]; then
+            ENV_NAME="test"
+          fi
+
+          IMAGE_NAME="${APP_NAME}-${ENV_NAME}"
           CI_IMAGE_NAME="${APP_NAME}-ci"
           echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
           echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
+          echo "env_name=$ENV_NAME" >> $GITHUB_OUTPUT
           echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
           echo "ci_image_name=$CI_IMAGE_NAME" >> $GITHUB_OUTPUT
 
@@ -93,7 +102,7 @@ jobs:
               echo "Invalid version: '${VERSION}' - feature/* requires X.X.X.XXXX format"
               exit 1
             fi
-          elif [[ "$BASE" == "release" ]]; then
+          elif [[ "$BASE" =~ ^release/.+ ]]; then
             if ! echo "${VERSION}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
               echo "Invalid version: '${VERSION}' - bugfix/* and hotfix/* require X.X.X format"
               exit 1
@@ -282,8 +291,8 @@ jobs:
 
       - name: Tag and push to GHCR
         run: |
-          IMAGE_NAME="${{ needs.build.outputs.image_name }}"
           APP_VERSION="${{ needs.build.outputs.app_version }}"
+          IMAGE_NAME="${{ needs.build.outputs.image_name }}"
           TARGET="ghcr.io/${{ github.actor }}/${IMAGE_NAME}"
 
           docker tag ${IMAGE_NAME} ${TARGET}:${APP_VERSION}

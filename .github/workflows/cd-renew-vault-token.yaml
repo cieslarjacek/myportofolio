@@ -1,0 +1,38 @@
+name: CD - Renew Vault Token
+
+on:
+  workflow_call:
+    secrets:
+      SERVER_SSH_KNOWN_HOSTS:
+        required: true
+      SERVER_HOST:
+        required: true
+      SERVER_USER:
+        required: true
+      SERVER_SSH_KEY:
+        required: true
+      VAULT_TOKEN:
+        required: true
+
+jobs:
+  renew:
+    name: Renew Vault token
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+
+      - name: Renew token via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 2222
+          script: |
+            export VAULT_ADDR=${{ secrets.VAULT_ADDRESS }}
+            export VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}
+            vault token renew
+            echo "Vault token renewed successfully"

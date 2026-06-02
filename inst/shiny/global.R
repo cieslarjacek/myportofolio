@@ -25,7 +25,7 @@ color_palette <- app_settings$color_palette
 if (as.logical(Sys.getenv("LOCAL_RUN"))) {
   app_secrets <- Sys.getenv(app_settings$secret_names)
 } else {
-  secret_reader <- SecretReader$new(Sys.getenv("DEPLOYMENT_ENV"))
+  secret_reader <- SecretReader$new()
   app_secrets <- secret_reader$get_all_secrets()
 }
 
