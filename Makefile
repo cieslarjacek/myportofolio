@@ -98,10 +98,10 @@ run-bash:
 run-r:
 	$(DOCKER_COMMAND) compose --profile ci run --rm ci R --no-save --no-restore
 
-VAULT_SSH_USER := $(shell grep '^VAULT_SSH_USER=' $(ENV_FILE) | cut -d '=' -f2)
-VAULT_SSH_HOST := $(shell grep '^VAULT_SSH_HOST=' $(ENV_FILE) | cut -d '=' -f2)
-VAULT_SSH_PORT := $(shell grep '^VAULT_SSH_PORT=' $(ENV_FILE) | cut -d '=' -f2)
-VAULT_SSH_TUNNEL_PORT := $(shell grep '^VAULT_SSH_TUNNEL_PORT=' $(ENV_FILE) | cut -d '=' -f2)
+VAULT_SSH_USER = $(shell grep '^VAULT_SSH_USER=' $(ENV_FILE) | cut -d '=' -f2)
+VAULT_SSH_HOST = $(shell grep '^VAULT_SSH_HOST=' $(ENV_FILE) | cut -d '=' -f2)
+VAULT_SSH_PORT = $(shell grep '^VAULT_SSH_PORT=' $(ENV_FILE) | cut -d '=' -f2)
+VAULT_SSH_TUNNEL_PORT = $(shell grep '^VAULT_SSH_TUNNEL_PORT=' $(ENV_FILE) | cut -d '=' -f2)
 
 ssh-tunnel-open:
 	@echo "Opening SSH tunnel to Vault..."
@@ -115,7 +115,7 @@ ssh-tunnel-open:
 
 ssh-tunnel-close:
 	@echo "Closing SSH tunnel..."
-	@pkill -f "ssh -f -N -p $(VAULT_SSH_PORT) -L $(VAULT_SSH_TUNNEL_PORT)" || true
+	@lsof -ti:$(VAULT_SSH_TUNNEL_PORT) | xargs -r kill
 	@echo "Tunnel closed"
 
 run-app: ssh-tunnel-open
