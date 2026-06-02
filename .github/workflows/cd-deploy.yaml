@@ -106,21 +106,22 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 2222
           script: |
-            export VAULT_ADDR=${{ secrets.VAULT_ADDRESS }}
-            export VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}
+            ENV_DIR=/opt/${{ inputs.app_name }}/${{ inputs.environment }}
 
-            # Pull secrets from Vault into .env file
-            vault kv get -format=json secret/${{ inputs.app_name }}/${{ inputs.environment }} \
-              | jq -r '.data.data | to_entries[] | "\(.key)=\(.value)"' \
-              > /opt/${{ inputs.app_name }}/${{ inputs.environment }}/.env
-            echo "APP_VERSION=${{ inputs.version }}" >> /opt/${{ inputs.app_name }}/${{ inputs.environment }}/.env
+            # Append APP_VERSION to existing .env file
+            sed -i '/^APP_VERSION=/d' ${ENV_DIR}/.env
+            echo "APP_VERSION=${{ inputs.version }}" >> ${ENV_DIR}/.env
 
-            # Pull new image and restart
+            # Pull new image and restart via compose
+            # VAULT_ADDRESS and VAULT_TOKEN are passed as env vars, not written to .env
             docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/${{ inputs.app_name }}-${{ inputs.environment }}:${{ inputs.version }}
-            cd /opt/${{ inputs.app_name }}/${{ inputs.environment }}
+            cd ${ENV_DIR}
+            VAULT_ADDRESS=${{ secrets.VAULT_ADDRESS }} \
+            VAULT_TOKEN=${{ secrets.VAULT_TOKEN }} \
             docker compose down
+            VAULT_ADDRESS=${{ secrets.VAULT_ADDRESS }} \
+            VAULT_TOKEN=${{ secrets.VAULT_TOKEN }} \
             docker compose up -d
-            sudo systemctl restart ${{ inputs.app_name }}-${{ inputs.environment }}
 
             # Clean up old images
             docker image prune -a --filter "until=168h" --force
