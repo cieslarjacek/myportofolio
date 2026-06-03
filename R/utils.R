@@ -56,6 +56,20 @@ get_js_event <- function(id) {
 # nolint end
 # nocov end
 
+#' Create copyright footnote
+#'
+#' Creates copyright footnote to use across the app.
+#'
+#' @return A string with a copyright note.
+#' @export
+create_copyright_note <- function() {
+  sprintf(
+    "Copyright © %s Jacek Cieslar (v%s). All rights reserved.",
+    format(Sys.Date(), "%Y"),
+    utils::packageVersion("myportfolio")
+  )
+}
+
 #' Check if object is empty
 #'
 #' Invalidates provided object.

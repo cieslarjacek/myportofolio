@@ -8,6 +8,7 @@
 \alias{set_db_schema_registry}
 \alias{set_export_types}
 \alias{set_name_id_indicators}
+\alias{set_secret_names}
 \alias{set_id_aggr_indicators}
 \alias{set_aggr_config}
 \title{Get list of predefined app settings}
@@ -25,6 +26,8 @@ set_db_schema_registry()
 set_export_types()
 
 set_name_id_indicators()
+
+set_secret_names()
 
 set_id_aggr_indicators()
 
@@ -64,6 +67,8 @@ the list element names and column names as the list elements
 \item "export_types" is a named character vector where the element names are
 data export format types (e.g. png, csv, json) and the elements are related
 labels (e.g. "CSV data").
+\item "secret_names" is a character vector of secret names in the vault which
+are also environment variables during local run.
 \item "worldbank_indicator$name_id" is a named list where the elements are
 data indicator ids and the element names are indicator "human friendly"
 names.

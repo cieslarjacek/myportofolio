@@ -1,0 +1,110 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+      - release/**
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        options: [test, prod]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+# Pipeline logic:
+#   CI merges feature/* >>> develop        : auto-deploy to DEV
+#   CI merges bugfix/*  >>> release/X.X.X  : auto-deploy to TEST
+#   CI merges hotfix/*  >>> release/X.X.X  : auto-deploy to TEST
+#   Manual trigger                         : promote to TEST or PROD
+
+jobs:
+  # 0. Validate and extract version
+  validate:
+    name: Validate version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.vars.outputs.version }}
+      app_name: ${{ steps.vars.outputs.app_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract and validate version
+        id: vars
+        run: |
+          APP_NAME=$(grep '^Package:' DESCRIPTION | cut -d ' ' -f2)
+          VERSION=$(grep '^Version:' DESCRIPTION | cut -d ' ' -f2)
+
+          # DEV (develop branch): X.X.X or X.X.X.XXXX
+          if [[ "${{ github.ref_name }}" == "develop" ]]; then
+            if ! echo "${VERSION}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
+              echo "Invalid version: '${VERSION}' - DEV requires X.X.X or X.X.X.XXXX format"
+              exit 1
+            fi
+
+          # TEST / PROD (release/X.X.X branch or manual trigger): X.X.X only
+          elif [[ "${{ github.ref_name }}" =~ ^release/.+ ]] || \
+               [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if ! echo "${VERSION}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "Invalid version: '${VERSION}' - TEST and PROD require X.X.X format"
+              exit 1
+            fi
+          fi
+
+          echo "app_name=${APP_NAME}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}"   >> $GITHUB_OUTPUT
+          echo "Version '${VERSION}' for '${APP_NAME}' is valid."
+
+  # 1. Renew Vault token
+  renew-vault-token:
+    name: Renew Vault token
+    needs: validate
+    uses: ./.github/workflows/cd-renew-vault-token.yaml
+    secrets: inherit
+
+  # 2. Deploy to DEV (auto on merge to develop)
+  deploy-dev:
+    name: Deploy to DEV
+    needs: [validate, renew-vault-token]
+    if: github.event_name == 'push' && github.ref_name == 'develop'
+    uses: ./.github/workflows/cd-deploy.yaml
+    secrets: inherit
+    with:
+      environment: dev
+      version: ${{ needs.validate.outputs.version }}
+      app_name: ${{ needs.validate.outputs.app_name }}
+      app_url: ${{ vars.APP_DEV_URL }}
+
+  # 3. Deploy to TEST (auto on merge to release/X.X.X, or manual)
+  deploy-test:
+    name: Deploy to TEST
+    needs: [validate, renew-vault-token]
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref_name, 'release/')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'test')
+    uses: ./.github/workflows/cd-deploy.yaml
+    secrets: inherit
+    with:
+      environment: test
+      version: ${{ needs.validate.outputs.version }}
+      app_name: ${{ needs.validate.outputs.app_name }}
+      app_url: ${{ vars.APP_TEST_URL }}
+
+  # 4. Promote to PROD (manual only, retags from test)
+  deploy-prod:
+    name: Deploy to PROD
+    needs: [validate, renew-vault-token]
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod'
+    uses: ./.github/workflows/cd-deploy.yaml
+    secrets: inherit
+    with:
+      environment: prod
+      version: ${{ needs.validate.outputs.version }}
+      app_name: ${{ needs.validate.outputs.app_name }}
+      app_url: ${{ vars.APP_PROD_URL }}
+      source_env: test

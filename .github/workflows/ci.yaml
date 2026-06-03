@@ -4,21 +4,49 @@ on:
   pull_request:
     branches:
       - develop
+      - release/*
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
   cancel-in-progress: true
 
+# Pipeline logic:
+#   feature/* >>> develop       : full CI, version format X.X.X.XXXX, push as myportfolio-dev
+#   release/* >>> develop       : preflight only, no deploy
+#   bugfix/*  >>> release/X.X.X : full CI, version format X.X.X, push as myportfolio-test
+#   hotfix/*  >>> release/X.X.X : full CI, version format X.X.X, push as myportfolio-test
+
 jobs:
-  # 0. Pre-flight: scan diff for committed secrets
+  # 0. Pre-flight
   preflight:
     name: Pre-flight checks
     runs-on: ubuntu-latest
+    if: |
+      (github.base_ref == 'develop' && (startsWith(github.head_ref, 'feature/') || startsWith(github.head_ref, 'release/'))) ||
+      (startsWith(github.base_ref, 'release/') && (startsWith(github.head_ref, 'bugfix/') || startsWith(github.head_ref, 'hotfix/')))
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Validate source branch
+        run: |
+          BASE="${{ github.base_ref }}"
+          BRANCH="${{ github.head_ref }}"
+
+          if [[ "$BASE" == "develop" ]]; then
+            if [[ ! "$BRANCH" =~ ^(feature|release)/.+ ]]; then
+              echo "PRs to 'develop' must originate from 'feature/*' or 'release/*'."
+              exit 1
+            fi
+          elif [[ "$BASE" =~ ^release/.+ ]]; then
+            if [[ ! "$BRANCH" =~ ^(bugfix|hotfix)/.+ ]]; then
+              echo "PRs to 'release/X.X.X' must originate from 'bugfix/*' or 'hotfix/*'."
+              exit 1
+            fi
+          fi
+          echo "Branch '$BRANCH' to '$BASE' is valid."
 
       - name: Scan for committed secrets
         uses: trufflesecurity/trufflehog@main
@@ -33,9 +61,13 @@ jobs:
     name: Docker build
     needs: preflight
     runs-on: ubuntu-latest
+    if: |
+      (github.base_ref == 'develop' && startsWith(github.head_ref, 'feature/')) ||
+      (startsWith(github.base_ref, 'release/') && (startsWith(github.head_ref, 'bugfix/') || startsWith(github.head_ref, 'hotfix/')))
     outputs:
       app_name: ${{ steps.app_specs.outputs.app_name }}
       app_version: ${{ steps.app_specs.outputs.app_version }}
+      env_name: ${{ steps.app_specs.outputs.env_name }}
       image_name: ${{ steps.app_specs.outputs.image_name }}
     steps:
       - uses: actions/checkout@v4
@@ -45,10 +77,38 @@ jobs:
         run: |
           APP_NAME=$(grep '^Package:' DESCRIPTION | cut -d ' ' -f2)
           APP_VERSION=$(grep '^Version:' DESCRIPTION | cut -d ' ' -f2)
-          IMAGE_NAME="${APP_NAME}-dev"
+
+          if [[ "${{ github.base_ref }}" == "develop" ]]; then
+            ENV_NAME="dev"
+          elif [[ "${{ github.base_ref }}" =~ ^release/.+ ]]; then
+            ENV_NAME="test"
+          fi
+
+          IMAGE_NAME="${APP_NAME}-${ENV_NAME}"
+          CI_IMAGE_NAME="${APP_NAME}-ci"
           echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
           echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
+          echo "env_name=$ENV_NAME" >> $GITHUB_OUTPUT
           echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+          echo "ci_image_name=$CI_IMAGE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Validate version format
+        run: |
+          BASE="${{ github.base_ref }}"
+          VERSION="${{ steps.app_specs.outputs.app_version }}"
+
+          if [[ "$BASE" == "develop" ]]; then
+            if ! echo "${VERSION}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "Invalid version: '${VERSION}' - feature/* requires X.X.X.XXXX format"
+              exit 1
+            fi
+          elif [[ "$BASE" =~ ^release/.+ ]]; then
+            if ! echo "${VERSION}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "Invalid version: '${VERSION}' - bugfix/* and hotfix/* require X.X.X format"
+              exit 1
+            fi
+          fi
+          echo "Version '${VERSION}' is valid."
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -60,8 +120,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build image
+      - name: Build production image
         run: make docker-build
+        env:
+          CI: true
+
+      - name: Build CI image
+        run: make docker-build-ci
+        env:
+          CI: true
 
       - name: Upload build log
         uses: actions/upload-artifact@v4
@@ -71,13 +138,26 @@ jobs:
           path: docker_build.log
           retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
 
-      - name: Save image for downstream jobs
-        run: docker save ${{ steps.app_specs.outputs.image_name }} | gzip > /tmp/image.tar.gz
+      - name: Save production image for push job
+        run: |
+          docker save ${{ steps.app_specs.outputs.image_name }} \
+            | gzip > /tmp/image.tar.gz
 
       - uses: actions/upload-artifact@v4
         with:
           name: docker-image
           path: /tmp/image.tar.gz
+          retention-days: ${{ vars.IMAGE_RETENTION_PERIOD }}
+
+      - name: Save CI image for check jobs
+        run: |
+          docker save ${{ steps.app_specs.outputs.ci_image_name }} \
+            | gzip > /tmp/image-ci.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-image-ci
+          path: /tmp/image-ci.tar.gz
           retention-days: ${{ vars.IMAGE_RETENTION_PERIOD }}
 
   # 2. Linting
@@ -90,11 +170,11 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: docker-image
+          name: docker-image-ci
           path: /tmp
 
-      - name: Load image
-        run: docker load < /tmp/image.tar.gz
+      - name: Load CI image
+        run: docker load < /tmp/image-ci.tar.gz
 
       - name: Run linting check
         run: make ci-linting
@@ -120,7 +200,7 @@ jobs:
           name: docker-image
           path: /tmp
 
-      - name: Load image
+      - name: Load production image
         run: docker load < /tmp/image.tar.gz
 
       - name: Run SAST check
@@ -144,11 +224,11 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: docker-image
+          name: docker-image-ci
           path: /tmp
 
-      - name: Load image
-        run: docker load < /tmp/image.tar.gz
+      - name: Load CI image
+        run: docker load < /tmp/image-ci.tar.gz
 
       - name: Run coverage check
         run: make ci-coverage
@@ -171,11 +251,11 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: docker-image
+          name: docker-image-ci
           path: /tmp
 
-      - name: Load image
-        run: docker load < /tmp/image.tar.gz
+      - name: Load CI image
+        run: docker load < /tmp/image-ci.tar.gz
 
       - name: Run unit tests check
         run: make ci-unit-tests
@@ -188,7 +268,7 @@ jobs:
           path: ci_unittests.log
           retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
 
-  # 6. Push to GHCR
+  # 6. Push production image to GHCR
   push:
     name: Push image to GHCR
     needs: [build, unit-tests]
@@ -199,7 +279,7 @@ jobs:
           name: docker-image
           path: /tmp
 
-      - name: Load image
+      - name: Load production image
         run: docker load < /tmp/image.tar.gz
 
       - name: Log in to GHCR
@@ -209,16 +289,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push image to GHCR
+      - name: Tag and push to GHCR
         run: |
-          IMAGE_NAME="${{ needs.build.outputs.image_name }}"
           APP_VERSION="${{ needs.build.outputs.app_version }}"
+          IMAGE_NAME="${{ needs.build.outputs.image_name }}"
           TARGET="ghcr.io/${{ github.actor }}/${IMAGE_NAME}"
 
           docker tag ${IMAGE_NAME} ${TARGET}:${APP_VERSION}
           docker tag ${IMAGE_NAME} ${TARGET}:${{ github.sha }}
+          docker tag ${IMAGE_NAME} ${TARGET}:latest
           docker push ${TARGET}:${APP_VERSION}
           docker push ${TARGET}:${{ github.sha }}
+          docker push ${TARGET}:latest
 
   # 7. Report
   report:
@@ -244,3 +326,19 @@ jobs:
           echo "| Coverage     | \`ci_coverage.log\`       |" >> $GITHUB_STEP_SUMMARY
           echo "| Unit tests   | \`ci_unittests.log\`      |" >> $GITHUB_STEP_SUMMARY
           echo "| GHCR push    | ${{ needs.push.result }}  |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Delete short-lived branch after merge
+        if: |
+          github.event.pull_request.merged == true &&
+          (startsWith(github.head_ref, 'feature/') ||
+           startsWith(github.head_ref, 'bugfix/')  ||
+           startsWith(github.head_ref, 'hotfix/'))
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.git.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `heads/${context.payload.pull_request.head.ref}`
+            });

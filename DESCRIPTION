@@ -16,6 +16,7 @@ Imports:
     DT,
     glue,
     htmlwidgets,
+    httr2,
     jsonlite,
     leaflet,
     magrittr,

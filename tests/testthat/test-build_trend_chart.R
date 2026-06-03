@@ -8,7 +8,8 @@ test_that("make_download_file_name() creates correct name", {
   )
 })
 
-test_that("make_download_file_name() throws argument type error - 'name_root'",
+test_that(
+  "make_download_file_name() throws argument type error - 'name_root'",
   {
     error_msg <- "Assertion on 'name_root' failed"
 
@@ -87,57 +88,55 @@ test_that("build_trend_chart() creates right chart", {
   )
 })
 
-test_that("build_trend_chart() throws argument type error - 'dt_list'",
-  {
-    error_msg <- "Assertion on 'dt_list' failed"
+test_that("build_trend_chart() throws argument type error - 'dt_list'", {
+  error_msg <- "Assertion on 'dt_list' failed"
 
-    expect_error(
-      build_trend_chart(1, test_chart_color_theme, test_chart_config),
-      error_msg
-    )
-    expect_error(
-      build_trend_chart(list(), test_chart_color_theme, test_chart_config),
-      error_msg
-    )
-    expect_error(
-      build_trend_chart(
-        unname(test_chart_dt_list), test_chart_color_theme, test_chart_config
-      ),
-      error_msg
-    )
-    expect_error(
-      build_trend_chart(
-        test_chart_color_theme, test_chart_color_theme, test_chart_config
-      ),
-      error_msg
-    )
-  }
-)
+  expect_error(
+    build_trend_chart(1, test_chart_color_theme, test_chart_config),
+    error_msg
+  )
+  expect_error(
+    build_trend_chart(list(), test_chart_color_theme, test_chart_config),
+    error_msg
+  )
+  expect_error(
+    build_trend_chart(
+      unname(test_chart_dt_list), test_chart_color_theme, test_chart_config
+    ),
+    error_msg
+  )
+  expect_error(
+    build_trend_chart(
+      test_chart_color_theme, test_chart_color_theme, test_chart_config
+    ),
+    error_msg
+  )
+})
 
-test_that("build_trend_chart() throws argument type error - 'color_theme'",
-  {
-    error_msg <- "Assertion on 'color_theme' failed"
+test_that("build_trend_chart() throws argument type error - 'color_theme'", {
+  error_msg <- "Assertion on 'color_theme' failed"
 
-    expect_error(
-      build_trend_chart(test_chart_dt_list, "a", test_chart_config),
-      error_msg
-    )
-    expect_error(
-      build_trend_chart(test_chart_dt_list, list(), test_chart_config),
-      error_msg
-    )
-    expect_error(
-      build_trend_chart(
-        test_chart_dt_list, unname(test_chart_color_theme), test_chart_config
-      ),
-      error_msg
-    )
-    expect_error(
-      build_trend_chart(test_chart_dt_list, test_chart_dt_list, test_chart_config),
-      error_msg
-    )
-  }
-)
+  expect_error(
+    build_trend_chart(test_chart_dt_list, "a", test_chart_config),
+    error_msg
+  )
+  expect_error(
+    build_trend_chart(test_chart_dt_list, list(), test_chart_config),
+    error_msg
+  )
+  expect_error(
+    build_trend_chart(
+      test_chart_dt_list, unname(test_chart_color_theme), test_chart_config
+    ),
+    error_msg
+  )
+  expect_error(
+    build_trend_chart(
+      test_chart_dt_list, test_chart_dt_list, test_chart_config
+    ),
+    error_msg
+  )
+})
 
 test_that(
   "build_trend_chart() throws argument type error - 'names(color_theme)'",
@@ -153,30 +152,30 @@ test_that(
   }
 )
 
-test_that("build_trend_chart() throws argument type error - 'layout_config'",
-  {
-    error_msg <- "Assertion on 'layout_config' failed"
+test_that("build_trend_chart() throws argument type error - 'layout_config'", {
+  error_msg <- "Assertion on 'layout_config' failed"
 
-    expect_error(
-      build_trend_chart(test_chart_dt_list, test_chart_color_theme, 1),
-      error_msg
-    )
-    expect_error(
-      build_trend_chart(test_chart_dt_list, test_chart_color_theme, list()),
-      error_msg
-    )
-    expect_error(
-      build_trend_chart(
-        test_chart_dt_list, test_chart_color_theme, unname(test_chart_config)
-      ),
-      error_msg
-    )
-    expect_error(
-      build_trend_chart(test_chart_dt_list, test_chart_color_theme, test_chart_dt_list),
-      error_msg
-    )
-  }
-)
+  expect_error(
+    build_trend_chart(test_chart_dt_list, test_chart_color_theme, 1),
+    error_msg
+  )
+  expect_error(
+    build_trend_chart(test_chart_dt_list, test_chart_color_theme, list()),
+    error_msg
+  )
+  expect_error(
+    build_trend_chart(
+      test_chart_dt_list, test_chart_color_theme, unname(test_chart_config)
+    ),
+    error_msg
+  )
+  expect_error(
+    build_trend_chart(
+      test_chart_dt_list, test_chart_color_theme, test_chart_dt_list
+    ),
+    error_msg
+  )
+})
 
 test_that(
   "build_trend_chart() throws argument type error - 'names(layout_config)'",

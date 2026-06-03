@@ -1,0 +1,127 @@
+name: CD - Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Target environment (dev, test, prod)"
+        required: true
+        type: string
+      version:
+        description: "Image version to deploy"
+        required: true
+        type: string
+      app_name:
+        description: "Application name (from DESCRIPTION Package field)"
+        required: true
+        type: string
+      app_url:
+        description: "Public URL of the environment"
+        required: true
+        type: string
+      source_env:
+        description: "Source environment to retag from (PROD only - retags from test)"
+        required: false
+        type: string
+        default: ""
+    secrets:
+      SERVER_SSH_KNOWN_HOSTS:
+        required: true
+      SERVER_HOST:
+        required: true
+      SERVER_USER:
+        required: true
+      SERVER_SSH_KEY:
+        required: true
+      VAULT_TOKEN:
+        required: true
+
+env:
+  REGISTRY: ghcr.io
+  REGISTRY_USER: ${{ github.actor }}
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ inputs.app_url }}
+    steps:
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Confirm deployment target
+        run: |
+          echo "Deploying '${{ inputs.app_name }}-${{ inputs.environment }}:${{ inputs.version }}' to ${{ inputs.environment }}"
+
+      # DEV + TEST - image pushed directly by CI, just verify it exists
+      - name: Verify image exists in GHCR
+        if: inputs.source_env == ''
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/${{ inputs.app_name }}-${{ inputs.environment }}:${{ inputs.version }} \
+            || (echo "Image not found in GHCR - ensure the CI pipeline completed successfully" && exit 1)
+
+      # PROD only - verify source (test) image exists, check version label, retag and push
+      - name: Verify TEST image exists in GHCR
+        if: inputs.source_env != ''
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/${{ inputs.app_name }}-${{ inputs.source_env }}:${{ inputs.version }} \
+            || (echo "Version ${{ inputs.version }} not found in ${{ inputs.source_env }} - deploy to TEST first" && exit 1)
+
+      - name: Verify version label matches
+        if: inputs.source_env != ''
+        run: |
+          IMAGE=${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/${{ inputs.app_name }}-${{ inputs.source_env }}:${{ inputs.version }}
+          LABEL_VERSION=$(docker inspect --format '{{ index .Config.Labels "version" }}' ${IMAGE})
+          if [ "${LABEL_VERSION}" != "${{ inputs.version }}" ]; then
+            echo "Version label mismatch: image has '${LABEL_VERSION}', expected '${{ inputs.version }}'"
+            exit 1
+          fi
+          echo "Version label verified: ${LABEL_VERSION}"
+
+      - name: Retag from TEST and push as PROD
+        if: inputs.source_env != ''
+        run: |
+          SOURCE=${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/${{ inputs.app_name }}-${{ inputs.source_env }}:${{ inputs.version }}
+          TARGET=${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/${{ inputs.app_name }}-${{ inputs.environment }}:${{ inputs.version }}
+          docker tag  ${SOURCE} ${TARGET}
+          docker push ${TARGET}
+
+      # All environments - deploy to server via SSH
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 2222
+          script: |
+            ENV_DIR=/opt/${{ inputs.app_name }}/${{ inputs.environment }}
+
+            # Append APP_VERSION to existing .env file
+            sed -i '/^APP_VERSION=/d' ${ENV_DIR}/.env
+            echo "APP_VERSION=${{ inputs.version }}" >> ${ENV_DIR}/.env
+
+            # Pull new image and restart via compose
+            # VAULT_ADDRESS and VAULT_TOKEN are passed as env vars, not written to .env
+            docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/${{ inputs.app_name }}-${{ inputs.environment }}:${{ inputs.version }}
+            cd ${ENV_DIR}
+            VAULT_ADDRESS=${{ secrets.VAULT_ADDRESS }} \
+            VAULT_TOKEN=${{ secrets.VAULT_TOKEN }} \
+            docker compose down
+            VAULT_ADDRESS=${{ secrets.VAULT_ADDRESS }} \
+            VAULT_TOKEN=${{ secrets.VAULT_TOKEN }} \
+            docker compose up -d
+
+            # Clean up old images
+            docker image prune -a --filter "until=168h" --force

@@ -19,9 +19,9 @@
     --fs-base: 1.6vw;
     --fs-max: 11.0rem;
     --fs-min: 1.4rem;
-    --fs-small-base: 1.2vw;
-    --fs-small-max: 8.25rem;
-    --fs-small-min: 1.05rem;
+    --fs-small-base: 0.85vw;
+    --fs-small-max: 5.85rem;
+    --fs-small-min: 0.75rem;
     --fs-bs-body: 1rem;
     --fs-bs-btn: 0.9375rem;
     /* font weight */

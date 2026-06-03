@@ -1,0 +1,11 @@
+############################################
+# Stage 5 - CI pipeline tooling (not shipped to PROD environment)
+############################################
+ARG IMAGE_NAME
+FROM ${IMAGE_NAME}
+RUN echo "Stage 5: Installing CI pipeline tooling"
+
+ARG APP_MAIN_DIR
+WORKDIR ${APP_MAIN_DIR}
+COPY ci/r_packages.R ${APP_MAIN_DIR}
+RUN Rscript r_packages.R

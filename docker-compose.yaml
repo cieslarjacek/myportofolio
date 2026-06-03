@@ -1,0 +1,25 @@
+name: myportfolio
+
+services:
+  shiny-app:
+    image: ${IMAGE_NAME}
+    ports:
+      - "3838:3838"
+    env_file:
+      - ${ENV_FILE}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  ci:
+    build:
+      context: .
+      dockerfile: ci/Dockerfile.ci
+      args:
+        IMAGE_NAME: ${IMAGE_NAME}
+        APP_MAIN_DIR: ${APP_MAIN_DIR}
+    image: ${CI_IMAGE_NAME}
+    profiles:
+      - ci
+    volumes:
+      - ./ci:/app/ci
+      - ./.lintr:/app/.lintr
+      - ./tests:/app/tests
