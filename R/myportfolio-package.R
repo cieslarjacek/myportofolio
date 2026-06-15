@@ -2,6 +2,8 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom aws.s3 s3readRDS
+#' @importFrom aws.s3 s3saveRDS
 #' @importFrom bslib card_body
 #' @importFrom checkmate assert
 #' @importFrom checkmate assert_character
@@ -20,6 +22,7 @@
 #' @importFrom data.table copy
 #' @importFrom data.table rbindlist
 #' @importFrom DBI dbClearResult
+#' @importFrom DBI dbConnect
 #' @importFrom DBI dbDisconnect
 #' @importFrom DBI dbFetch
 #' @importFrom DBI dbGetQuery
@@ -49,6 +52,7 @@
 #' @importFrom plotly plotlyOutput
 #' @importFrom plotly renderPlotly
 #' @importFrom R6 R6Class
+#' @importFrom RMariaDB MariaDB
 #' @importFrom sf st_as_sf
 #' @importFrom sf st_drop_geometry
 #' @importFrom sf st_geometry

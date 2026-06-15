@@ -57,18 +57,18 @@ world_geometry_data <- shiny::reactive({
 
   target_name_set <- app_settings$data_labels$world_trends
 
+  browser()
+
+
+
+
+
+
+
   future.apply::future_sapply(
     target_name_set,
     function(target_name) {
-      db_connection <- DBI::dbConnect(
-        RMariaDB::MariaDB(),
-        dbname = app_secrets[["DB_NAME"]],
-        host = app_secrets[["DB_HOST"]],
-        port = as.integer(app_secrets[["DB_PORT"]]),
-        user = app_secrets[["DB_USERNAME"]],
-        password = app_secrets[["DB_PW"]]
-      )
-
+      db_connection <- myportfolio::create_db_connection(app_secrets)
       db_extractor <- myportfolio::DbDataExtractor$new(
         db_connection, temp_sql_db_schema
       )
@@ -84,6 +84,105 @@ world_geometry_data <- shiny::reactive({
 })
 
 country_label_data <- shiny::eventReactive(world_geometry_data(), {
+  browser()
+
+  countries_slow <- rbind(
+    world_geometry_data()[[1]],
+    world_geometry_data()[[2]]
+  )
+
+
+  s3_conn <- function(secrets) {
+    list(
+      bucket = secrets$MINIO_BUCKET,
+      key = secrets$MINIO_ACCESS_KEY,
+      secret = secrets$MINIO_SECRET_KEY,
+      region = "",
+      base_url = sub("^https?://", "", secrets$MINIO_ENDPOINT),
+      use_https = FALSE
+    )
+  }
+
+  # Usage
+  do.call(s3saveRDS, c(list(x = my_object, object = "data/my_object.rds"), s3_conn(secrets)))
+  do.call(s3readRDS, c(list(object = "data/my_object.rds"), s3_conn(secrets)))
+
+
+
+  library(aws.s3)
+
+  aws.s3::s3saveRDS(
+    x = countries_slow,
+    object = "world_geo.rds",
+    bucket = Sys.getenv("DEPLOYMENT_ENV"),
+    key = app_secrets[["MINIO_ACCESS_KEY"]],
+    secret = app_secrets[["MINIO_SECRET_KEY"]],
+    region = "",
+    base_url = sub("^https?://", "", "http://localhost:9000"),
+    use_https = FALSE
+  )
+
+
+
+  # install.packages("rmapshaper")
+  library(rmapshaper)
+  countries_fast <- rmapshaper::ms_simplify(countries_slow, keep = 0.5, keep_shapes = TRUE)
+
+  countries_fast[, c("id", "label", "geometry")]
+
+  create_base_map() %>%
+    add_bounds() %>%
+    add_view() %>%
+    add_clickable_polygons(countries_slow, list(stroke = "black", fill = "yellow"))
+
+  fil <- tempfile("world_geo", fileext = ".rds")
+  saveRDS(countries_slow, fil)
+  women2 <- readRDS(fil)
+
+
+usethis::use_import_from(
+  "aws.s3",
+  "s3readRDS"
+)
+
+
+
+
+  # create_base_map <- function() {
+  #   leaflet::leaflet(
+  #     options = leaflet::leafletOptions(minZoom = 1, maxZoom = 6, tap = FALSE)
+  #   )
+  # }
+  #
+  # add_bounds <- function(map) {
+  #   leaflet::setMaxBounds(map, -180, -90, 180, 90)
+  # }
+  #
+  # add_view <- function(map) {
+  #   leaflet::setView(map, lng = 14.4378, lat = 50.0755, zoom = 3)
+  # }
+  #
+  # add_clickable_polygons <- function(map, sf_data, color_theme) {
+  #   leaflet::addPolygons(
+  #     map,
+  #     data = sf_data,
+  #     color = color_theme$stroke,
+  #     weight = 1,
+  #     opacity = 1,
+  #     fillColor = color_theme$fill,
+  #     fillOpacity = 1,
+  #     layerId = ~id,
+  #     label = ~label,
+  #   )
+  # }
+  #
+  #
+  #
+  # object.size(countries_slow)
+  # object.size(countries_fast)
+
+
+
   data.table::as.data.table(
     sf::st_drop_geometry(world_geometry_data()$clickable)
   )
@@ -185,14 +284,7 @@ shiny::observeEvent(map_click_registry$add$id, {
 
   # TODO: USE FUTURE AND (MAYBE) PROMISES HERE.
   # THE CHART SHOULD GET THE DATA BEFORE TABLE.
-  db_connection <- DBI::dbConnect(
-    RMariaDB::MariaDB(),
-    dbname = app_secrets[["DB_NAME"]],
-    host = app_secrets[["DB_HOST"]],
-    port = as.integer(app_secrets[["DB_PORT"]]),
-    user = app_secrets[["DB_USERNAME"]],
-    password = app_secrets[["DB_PW"]]
-  )
+  db_connection <- myportfolio::create_db_connection(app_secrets)
   db_extractor <- myportfolio::DbDataExtractor$new(
     db_connection, sql_db_schema()
   )

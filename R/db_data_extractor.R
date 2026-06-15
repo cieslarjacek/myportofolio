@@ -156,7 +156,7 @@ DbDataExtractor <- R6::R6Class(
     #' @description
     #' Creates a new extractor object.
     #'
-    #' @param con A connection to database. Please check [DBI::dbConnect()]
+    #' @param con A connection to a database. Please check [DBI::dbConnect()]
     #'   for more details.
     #' @param db_schema A list with database schema.
     #' @return A new `DbDataExtractor` object.
@@ -258,3 +258,24 @@ DbDataExtractor <- R6::R6Class(
     }
   )
 )
+
+#' Create a connection to MySQL database
+#'
+#' Creates a connection to relevant MySQL database using provided secrets.
+#'
+#' @param secrets A named character vector that contains a configuration data
+#'   for a MySQL database connection.
+#' @return A connection to a database. Please check [DBI::dbConnect()]
+#'   for more details.
+create_db_connection <- function(secrets) {
+  assert_with(checkmate::check_character, secrets, assert_named_args())
+
+  DBI::dbConnect(
+    RMariaDB::MariaDB(),
+    dbname = app_secrets[["DB_NAME"]],
+    host = app_secrets[["DB_HOST"]],
+    port = as.integer(app_secrets[["DB_PORT"]]),
+    user = app_secrets[["DB_USERNAME"]],
+    password = app_secrets[["DB_PW"]]
+  )
+}
