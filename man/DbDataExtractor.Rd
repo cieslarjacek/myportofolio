@@ -29,8 +29,9 @@ elements.}
 \item \href{#method-DbDataExtractor-get_data}{\code{DbDataExtractor$get_data()}}
 \item \href{#method-DbDataExtractor-get_geometry_clickable}{\code{DbDataExtractor$get_geometry_clickable()}}
 \item \href{#method-DbDataExtractor-get_geometry_notclickable}{\code{DbDataExtractor$get_geometry_notclickable()}}
-\item \href{#method-DbDataExtractor-get_indicator_data}{\code{DbDataExtractor$get_indicator_data()}}
-\item \href{#method-DbDataExtractor-get_weight_data}{\code{DbDataExtractor$get_weight_data()}}
+\item \href{#method-DbDataExtractor-get_indicator_values}{\code{DbDataExtractor$get_indicator_values()}}
+\item \href{#method-DbDataExtractor-get_weight_values}{\code{DbDataExtractor$get_weight_values()}}
+\item \href{#method-DbDataExtractor-get_country_ids}{\code{DbDataExtractor$get_country_ids()}}
 \item \href{#method-DbDataExtractor-clear_result}{\code{DbDataExtractor$clear_result()}}
 \item \href{#method-DbDataExtractor-disconnect}{\code{DbDataExtractor$disconnect()}}
 \item \href{#method-DbDataExtractor-clone}{\code{DbDataExtractor$clone()}}
@@ -48,7 +49,7 @@ Creates a new extractor object.
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{con}}{A connection to database. Please check \code{\link[DBI:dbConnect]{DBI::dbConnect()}}
+\item{\code{con}}{A connection to a database. Please check \code{\link[DBI:dbConnect]{DBI::dbConnect()}}
 for more details.}
 
 \item{\code{db_schema}}{A list with database schema.}
@@ -108,12 +109,12 @@ A \code{data.frame} object.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DbDataExtractor-get_indicator_data"></a>}}
-\if{latex}{\out{\hypertarget{method-DbDataExtractor-get_indicator_data}{}}}
-\subsection{Method \code{get_indicator_data()}}{
+\if{html}{\out{<a id="method-DbDataExtractor-get_indicator_values"></a>}}
+\if{latex}{\out{\hypertarget{method-DbDataExtractor-get_indicator_values}{}}}
+\subsection{Method \code{get_indicator_values()}}{
 Fetches data for target indicator in target country.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DbDataExtractor$get_indicator_data(country_id)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DbDataExtractor$get_indicator_values(country_id)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -129,12 +130,12 @@ A \code{data.frame} object.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-DbDataExtractor-get_weight_data"></a>}}
-\if{latex}{\out{\hypertarget{method-DbDataExtractor-get_weight_data}{}}}
-\subsection{Method \code{get_weight_data()}}{
+\if{html}{\out{<a id="method-DbDataExtractor-get_weight_values"></a>}}
+\if{latex}{\out{\hypertarget{method-DbDataExtractor-get_weight_values}{}}}
+\subsection{Method \code{get_weight_values()}}{
 Fetches data for target weight in target country.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{DbDataExtractor$get_weight_data(country_id)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{DbDataExtractor$get_weight_values(country_id)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -145,6 +146,19 @@ code.}
 }
 \if{html}{\out{</div>}}
 }
+\subsection{Returns}{
+A \code{data.frame} object.
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-DbDataExtractor-get_country_ids"></a>}}
+\if{latex}{\out{\hypertarget{method-DbDataExtractor-get_country_ids}{}}}
+\subsection{Method \code{get_country_ids()}}{
+Fetches country ids in target indicator.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{DbDataExtractor$get_country_ids()}\if{html}{\out{</div>}}
+}
+
 \subsection{Returns}{
 A \code{data.frame} object.
 }

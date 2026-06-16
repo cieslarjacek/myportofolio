@@ -75,6 +75,18 @@ check_character_args <- function() {
 #' @noRd
 assert_character_args <- check_character_args
 
+#' Common \pkg{checkmate} arguments for character vectors
+#'
+#' @keywords internal
+#' @noRd
+check_named_character_args <- function() {
+  c(list(names = "named"), check_character_args())
+}
+
+#' @keywords internal
+#' @noRd
+assert_named_character_args <- check_named_character_args
+
 #' Assert `sf` data frame with polygon country data
 #'
 #' @keywords internal

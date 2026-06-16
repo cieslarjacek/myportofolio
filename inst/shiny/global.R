@@ -1,6 +1,7 @@
 # TODO: CLEAN THE LIST OF PACKAGES.
 library(bslib)
 library(data.table)
+library(cachem)
 library(DBI)
 library(DT)
 library(future)
@@ -28,6 +29,9 @@ if (as.logical(Sys.getenv("LOCAL_RUN"))) {
   secret_reader <- SecretReader$new()
   app_secrets <- secret_reader$get_all_secrets()
 }
+
+# Enable in memory caching that is shared across all sessions.
+app_cache <- cachem::cache_mem()
 
 # IMPORTANT: Keep this at the end to avoid errors in `future` functions.
 future::plan(future::multisession)

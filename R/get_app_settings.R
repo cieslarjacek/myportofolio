@@ -80,6 +80,7 @@ set_data_labels <- function() {
   )
 }
 
+# TODO: CREATE A NEW S3 CLASSE FOR DB SCHEMA?
 #' @rdname get_app_settings
 set_db_schema_registry <- function() {
   list(

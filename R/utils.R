@@ -64,7 +64,7 @@ get_js_event <- function(id) {
 #' @export
 create_copyright_note <- function() {
   sprintf(
-    "Copyright © %s Jacek Cieslar (v%s). All rights reserved.",
+    "Copyright \u00a9 %s Jacek Cieslar (v%s). All rights reserved.",
     format(Sys.Date(), "%Y"),
     utils::packageVersion("myportfolio")
   )

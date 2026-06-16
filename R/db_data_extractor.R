@@ -1,7 +1,7 @@
 #' Make SQL query for "clickable"/"notclickable" geometry data
 #'
-#' Makes SQL query for fetching "clickable"/"notclickable" geometry data using
-#'   database schema.
+#' Makes SQL query for fetching country specific "clickable"/"notclickable"
+#'   geometry data using database schema.
 #'
 #' @param db_schema A named list with SQL table names as the list element names
 #'   and column names, in a qualified column name format, as the list elements.
@@ -69,33 +69,34 @@ make_query_geometry <- function(db_schema) {
   )
 }
 
-#' Make SQL query for indicator/weight data
+#' Make SQL query for indicator/weight values
 #'
-#' Makes SQL query for fetching country specific indicator/weight data using
+#' Makes SQL query for fetching country specific indicator/weight values using
 #'   database schema.
 #'
 #' @param db_schema A named list with SQL table names as the list element names
 #'   and column names, in a qualified column name format, as the list elements.
-#' @param indic_id A string with a data indicator id.
+#' @param indic_id A string with a id of database table containing indicator
+#'   values.
 #' @return A character vector containing SQL query.
 #' @keywords internal
 #' @noRd
-make_query_indicator_data <- function(db_schema) {
+make_query_values_indicator <- function(db_schema) {
   assert_with(checkmate::assert_list, db_schema, assert_named_args())
 
-  make_query_data(db_schema, names(db_schema)[3])
+  make_query_values(db_schema, names(db_schema)[3])
 }
 
-#' @rdname make_query_indicator_data
+#' @rdname make_query_values_indicator
 #' @keywords internal
 #' @noRd
-make_query_weight_data <- function(db_schema) {
+make_query_values_weight <- function(db_schema) {
   assert_with(checkmate::assert_list, db_schema, assert_named_args())
 
   aux_table_name <- names(db_schema)[4]
   if (is_empty(aux_table_name)) {
     warning(
-      "In 'make_query_weight_data':",
+      "In 'make_query_values_weight':",
       "\nWeight data table name doesn't exist in 'db_schema'.",
       "\nSQL query wasn't created and data weren't extracted.",
       call. = FALSE
@@ -103,13 +104,13 @@ make_query_weight_data <- function(db_schema) {
     return(NULL)
   }
 
-  make_query_data(db_schema, aux_table_name)
+  make_query_values(db_schema, aux_table_name)
 }
 
-#' @rdname make_query_indicator_data
+#' @rdname make_query_values_indicator
 #' @keywords internal
 #' @noRd
-make_query_data <- function(db_schema, indic_id) {
+make_query_values <- function(db_schema, indic_id) {
   sort_part <- glue::glue(
     " ORDER BY {indicator_time_period} ASC;",
     indicator_time_period = db_schema[[indic_id]][2]
@@ -120,6 +121,27 @@ make_query_data <- function(db_schema, indic_id) {
     indicator_country_id = db_schema[[indic_id]][1]
   ) %>%
     glue::glue_sql(., "?", sort_part, .con = DBI::ANSI())
+}
+
+#' Make SQL query for country ids.
+#'
+#' Makes SQL query for fetching country unique ids using database schema.
+#'
+#' @param db_schema A named list with SQL table names as the list element names
+#'   and column names, in a qualified column name format, as the list elements.
+#' @return A character vector containing SQL query.
+#' @keywords internal
+#' @noRd
+make_query_country_ids <- function(db_schema) {
+  aux_table_name <- names(db_schema)[3]
+
+  glue::glue(
+    "SELECT DISTINCT {indicator_country_id}
+    FROM {indicator_dt}
+    WHERE {indicator_country_id} > 0;",
+    indicator_country_id = db_schema[[aux_table_name]][1],
+    indicator_dt = aux_table_name
+  )
 }
 
 #' @title Database data extractor
@@ -137,15 +159,17 @@ DbDataExtractor <- R6::R6Class(
     .query = list(
       geometry_clickable = NULL,
       geometry_notclickable = NULL,
-      indicator_data = NULL,
-      weight_data = NULL
+      values_indicator = NULL,
+      values_weight = NULL,
+      country_ids = NULL
     ),
     # A list of functions that create SQL queries.
     .make_query_func = list(
       geometry_clickable = make_query_geom_clickable,
       geometry_notclickable = make_query_geom_notclickable,
-      indicator_data = make_query_indicator_data,
-      weight_data = make_query_weight_data
+      values_indicator = make_query_values_indicator,
+      values_weight = make_query_values_weight,
+      country_ids = make_query_country_ids
     )
   ),
   public = list(
@@ -219,9 +243,9 @@ DbDataExtractor <- R6::R6Class(
     #' @param country_id An integer, ISO 3166-1 numeric (or numeric-3) country
     #'   code.
     #' @return A `data.frame` object.
-    get_indicator_data = function(country_id) {
+    get_indicator_values = function(country_id) {
       checkmate::assert_integerish(country_id)
-      self$get_data("indicator_data", country_id)
+      self$get_data("values_indicator", country_id)
     },
     #' @description
     #' Fetches data for target weight in target country.
@@ -229,9 +253,15 @@ DbDataExtractor <- R6::R6Class(
     #' @param country_id An integer, ISO 3166-1 numeric (or numeric-3) country
     #'   code.
     #' @return A `data.frame` object.
-    get_weight_data = function(country_id) {
+    get_weight_values = function(country_id) {
       checkmate::assert_integerish(country_id)
-      self$get_data("weight_data", country_id)
+      self$get_data("values_weight", country_id)
+    },
+    #' @description
+    #' Fetches country ids in target indicator.
+    #' @return A `data.frame` object.
+    get_country_ids = function() {
+      self$get_data("country_ids")
     },
     #' @description
     #' Just a wrapper for [DBI::dbClearResult()]. Clears a result set obtained
@@ -267,15 +297,18 @@ DbDataExtractor <- R6::R6Class(
 #'   for a MySQL database connection.
 #' @return A connection to a database. Please check [DBI::dbConnect()]
 #'   for more details.
+#' @export
 create_db_connection <- function(secrets) {
-  assert_with(checkmate::check_character, secrets, assert_named_args())
+  assert_with(
+    checkmate::assert_character, secrets, assert_named_character_args()
+  )
 
   DBI::dbConnect(
     RMariaDB::MariaDB(),
-    dbname = app_secrets[["DB_NAME"]],
-    host = app_secrets[["DB_HOST"]],
-    port = as.integer(app_secrets[["DB_PORT"]]),
-    user = app_secrets[["DB_USERNAME"]],
-    password = app_secrets[["DB_PW"]]
+    dbname = secrets[["DB_NAME"]],
+    host = secrets[["DB_HOST"]],
+    port = as.integer(secrets[["DB_PORT"]]),
+    user = secrets[["DB_USERNAME"]],
+    password = secrets[["DB_PW"]]
   )
 }
