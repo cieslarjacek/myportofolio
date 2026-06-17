@@ -3,7 +3,7 @@
 #' Makes x or y axis data range for `plotly` line chart.
 #'
 #' @details
-#' For x-axis new range is created using `celinig()` and `floor()` rounding.
+#' For x-axis new range is created using `ceiling()` and `floor()` rounding.
 #'
 #' For y-axis extra padding is added around its initial minimum and maximum
 #' values.

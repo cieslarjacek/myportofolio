@@ -28,7 +28,7 @@ shiny::observeEvent(indicator_id(),
       )
     }
 
-    map_active_color(reactivevals_manager$reset("map_active_color"))
+    map_available_color(reactivevals_manager$reset("map_available_color"))
     chart_active_data(reactivevals_manager$reset("chart_active_data"))
     table_weight_data(reactivevals_manager$reset("table_weight_data"))
     ui_render_flag(reactivevals_manager$reset("ui_render_flag"))
@@ -136,9 +136,11 @@ shiny::observeEvent(input$`world_trends-map_shape_click`$id, {
     )
 
     session$sendCustomMessage(
-      "recolorLayer", list(c(temp_click$id, map_active_color()[1]))
+      "recolorLayer", list(c(temp_click$id, map_available_color()[1]))
     )
   }
+  browser()
+  print("asdsa")
 })
 
 # Apply logic for country selection reset button.
@@ -174,7 +176,7 @@ shiny::observe({
 # Send released color back to the handler.
 shiny::observeEvent(input$color_return, {
   shiny::req(input$color_return)
-  map_active_color(c(map_active_color(), input$color_return))
+  map_available_color(c(map_available_color(), input$color_return))
 })
 
 # Update "chart_active_data()".
@@ -230,7 +232,7 @@ shiny::observeEvent(chart_active_data(),
 
     temp_plot <- myportfolio::build_trend_chart(
       chart_active_data()[map_click_registry$add$label],
-      myportfolio::make_chart_color_theme(map_active_color()[1]),
+      myportfolio::make_chart_color_theme(map_available_color()[1]),
       myportfolio::make_chart_config(
         indicator_id(), chart_active_data_range$absolute$y
       )
@@ -238,7 +240,7 @@ shiny::observeEvent(chart_active_data(),
     chart_with_one_trace(temp_plot)
 
     # Drop the color taken by the trend chart series.
-    shiny::isolate(map_active_color(map_active_color()[-1]))
+    shiny::isolate(map_available_color(map_available_color()[-1]))
   },
   ignoreNULL = FALSE
 )
@@ -266,13 +268,13 @@ observeEvent(map_click_registry$add$id, {
     "world_trends",
     list(
       dt_list = chart_active_data()[map_click_registry$add$label],
-      color = map_active_color()[1]
+      color = map_available_color()[1]
     ),
     yrange
   )
 
   # Drop the color taken by the trend chart series.
-  shiny::isolate(map_active_color(map_active_color()[-1]))
+  shiny::isolate(map_available_color(map_available_color()[-1]))
 })
 
 # Adjust the trend chart y-axis.

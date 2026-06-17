@@ -1,4 +1,4 @@
-# TODO: Convert it to R6 class maybe.
+# TODO: CONVERT IT TO R6 CLASS MAYBE?
 # nocov start
 # nolint start
 #' Get list of predefined app settings

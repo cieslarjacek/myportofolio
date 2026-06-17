@@ -56,6 +56,7 @@ get_js_event <- function(id) {
 # nolint end
 # nocov end
 
+# nocov start
 #' Create copyright footnote
 #'
 #' Creates copyright footnote to use across the app.
@@ -69,6 +70,7 @@ create_copyright_note <- function() {
     utils::packageVersion("myportfolio")
   )
 }
+# nocov end
 
 #' Check if object is empty
 #'

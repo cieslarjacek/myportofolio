@@ -68,3 +68,28 @@ test_that("select_page() throws argument type error - 'default'", {
   expect_error(select_page("/x", list(), NA), error_msg)
   expect_error(select_page("/x", list(), character(0)), error_msg)
 })
+
+test_that("route_page() returns expected page based on the provided path", {
+  test_route_schema <- list(
+    "/"      = shiny::tags$div("Home"),
+    "/about" = shiny::tags$div("About")
+  )
+  test_handler <- route_page(test_route_schema)
+
+  expect_equal(
+    test_handler(list(PATH_INFO = "/about")), shiny::tags$div("About")
+  )
+  expect_equal(test_handler(list(PATH_INFO = "/")), shiny::tags$div("Home"))
+  expect_equal(test_handler(list(PATH_INFO = "/dummy")), "404 Not Found")
+})
+
+test_that("route_page() throws argument type error - 'url_path'", {
+  test_route_schema <- list(
+    "/"      = shiny::tags$div("Home"),
+    "/about" = shiny::tags$div("About")
+  )
+  test_handler <- route_page(test_route_schema)
+  error_msg <- "Assertion on 'url_path' failed"
+
+  expect_error(test_handler(list()), error_msg)
+})

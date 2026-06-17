@@ -25,7 +25,7 @@ the data range modified minimum and the second is the modified maximum.
 Makes x or y axis data range for \code{plotly} line chart.
 }
 \details{
-For x-axis new range is created using \code{celinig()} and \code{floor()} rounding.
+For x-axis new range is created using \code{ceiling()} and \code{floor()} rounding.
 
 For y-axis extra padding is added around its initial minimum and maximum
 values.
