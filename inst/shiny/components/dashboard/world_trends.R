@@ -139,8 +139,6 @@ shiny::observeEvent(input$`world_trends-map_shape_click`$id, {
       "recolorLayer", list(c(temp_click$id, map_available_color()[1]))
     )
   }
-  browser()
-  print("asdsa")
 })
 
 # Apply logic for country selection reset button.
