@@ -1,7 +1,7 @@
 message("Running COVERAGE check...")
 out <- covr::package_coverage()
 actual_coverage <- covr::percent_coverage(out)
-expected_coverage <- 60 # TODO: MAKE IT 80.
+expected_coverage <- 80
 
 print(out)
 Sys.sleep(1)

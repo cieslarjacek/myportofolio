@@ -70,7 +70,7 @@ SecretReader <- R6::R6Class(
     #' @param secret_name A string containing the name of the secret.
     #' @return A secret value.
     get_secret = function(secret_name) {
-      secret_value <- get_all_secrets()[[secret_name]]
+      secret_value <- self$get_all_secrets()[[secret_name]]
 
       if (is.null(secret_value)) {
         stop(sprintf(
