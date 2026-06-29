@@ -7,7 +7,7 @@
 StorageService <- R6::R6Class(
   "StorageService",
   private = list(
-    # A connection details for storage.
+    # A connection details for the storage.
     .con = NULL,
     # A list of GET functions.
     .get_func = NULL,
@@ -111,7 +111,10 @@ get_storage_connection <- function(secrets) {
   )
 
   list(
-    bucket = Sys.getenv("DEPLOYMENT_ENV"),
+    bucket = paste(
+      Sys.getenv("APP_NAME"), Sys.getenv("DEPLOYMENT_ENV"),
+      sep = "-"
+    ),
     key = secrets[["MINIO_ACCESS_KEY"]],
     secret = secrets[["MINIO_SECRET_KEY"]],
     region = "",

@@ -68,8 +68,8 @@ make_sql_qualified_columns <- function(db_schema) {
 #' In all cases country is identified by its ISO code (id) and name (label).
 #'
 #' * "sql_db_schema" (`reactiveVal`)
-#' A named list used to extract data from MySQL database. Please check [DbDataExtractor()]
-#' and [get_app_settings()] for more details.
+#' A named list used to extract data from MySQL database. Please check
+#' [DbDataExtractor()] and [get_app_settings()] for more details.
 #'
 #' * "table_aggregation_params" (`reactiveVal`)
 #' A two element named list with a function and a column names that will be used
@@ -314,7 +314,10 @@ update_aggregation_specs <- function(
 #' @return A named list with removed element.
 #' @export
 remove_list_elem <- function(list_object, elem_name) {
-  assert_with(checkmate::assert_list, list_object, assert_named_args())
+  checkmate::assert_list(
+    list_object,
+    any.missing = FALSE, all.missing = FALSE, names = "unique"
+  )
   checkmate::assert_string(elem_name)
 
   list_object[[elem_name]] <- NULL

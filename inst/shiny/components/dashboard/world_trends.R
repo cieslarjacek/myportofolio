@@ -15,19 +15,14 @@ for (obj_name in names(reactivevals_manager$init_objects)) {
 shiny::observeEvent(indicator_id(),
   {
     if (is_empty(indicator_id())) {
-      sql_db_schema(reactivevals_manager$reset("sql_db_schema"))
       table_aggregation_params(
         reactivevals_manager$reset("table_aggregation_params")
       )
     } else {
-      sql_db_schema(
-        reactivevals_manager$update("sql_db_schema")(indicator_id())
-      )
       table_aggregation_params(
         reactivevals_manager$update("table_aggregation_params")(indicator_id())
       )
     }
-
     map_available_color(reactivevals_manager$reset("map_available_color"))
     chart_active_data(reactivevals_manager$reset("chart_active_data"))
     table_weight_data(reactivevals_manager$reset("table_weight_data"))
@@ -46,6 +41,20 @@ shiny::observeEvent(indicator_id(),
     }
 
     session$sendCustomMessage("toggleTrendChartExportBtn", FALSE)
+
+    # adssad
+    sql_db_schema(reactivevals_manager$reset("sql_db_schema"))
+    if (!is_empty(indicator_id())) {
+      temp_indicator <- indicator_id()
+      session$onFlushed(
+        function() {
+          sql_db_schema(
+            reactivevals_manager$update("sql_db_schema")(temp_indicator)
+          )
+        },
+        once = TRUE
+      )
+    }
   },
   ignoreInit = TRUE
 )
@@ -160,9 +169,10 @@ shiny::observeEvent(input$reset_selection, {
   }
   session$sendCustomMessage("toggleTrendChartExportBtn", FALSE)
 
-  # Clear the trend chart series.
+  # Clear the trend chart and the decade table series.
   ui_render_flag(reactivevals_manager$reset("ui_render_flag"))
   chart_active_data(reactivevals_manager$reset("chart_active_data"))
+  table_weight_data(reactivevals_manager$reset("table_weight_data"))
 })
 
 shiny::observe({
@@ -306,7 +316,7 @@ observeEvent(wt_chart_relayout_event(),
   ignoreNULL = TRUE
 )
 
-# Remove a series (trace) from the trend chart.
+# Remove a series (trace) from the trend chart and the decade table.
 shiny::observeEvent(map_click_registry$remove$id, {
   shiny::req(length(map_click_registry$active) >= 1)
   shiny::req(map_click_registry$remove$id)
@@ -314,6 +324,9 @@ shiny::observeEvent(map_click_registry$remove$id, {
   series_label <- map_click_registry$remove$label
   chart_active_data(
     myportfolio::remove_list_elem(chart_active_data(), series_label)
+  )
+  table_weight_data(
+    myportfolio::remove_list_elem(table_weight_data(), series_label)
   )
 
   chart_active_data_range$absolute$x <- myportfolio::extract_dt_list_range(

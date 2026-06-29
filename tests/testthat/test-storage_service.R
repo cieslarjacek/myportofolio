@@ -116,6 +116,7 @@ test_that("put_geometry_all() delegates to put_data('geometry_all')", {
 
 test_that("get_storage_connection() returns correct list from valid secrets", {
   withr::local_envvar(DEPLOYMENT_ENV = "staging")
+  withr::local_envvar(APP_NAME = "myapp")
   test_secrets <- c(
     MINIO_ACCESS_KEY = "ak",
     MINIO_SECRET_KEY = "sk",
@@ -123,7 +124,7 @@ test_that("get_storage_connection() returns correct list from valid secrets", {
   )
   test_result <- get_storage_connection(test_secrets)
 
-  expect_equal(test_result$bucket, "staging")
+  expect_equal(test_result$bucket, "myapp-staging")
   expect_equal(test_result$key, "ak")
   expect_equal(test_result$secret, "sk")
   expect_equal(test_result$region, "")

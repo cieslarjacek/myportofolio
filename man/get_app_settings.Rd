@@ -74,6 +74,6 @@ data indicator ids and the element names are indicator "human friendly"
 names.
 \item "worldbank_indicator$id_aggr" is a named list where the elements are
 the data indicator aggregation parameters (see \code{target_names} description)
-and the element names are data indicator ids. \code{\link[=DbDataExtractor]{DbDataExtractor()}}
+and the element names are data indicator ids.
 }
 }
