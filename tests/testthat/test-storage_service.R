@@ -139,9 +139,11 @@ test_that("get_storage_connection() rejects an unnamed secrets vector", {
   )
 })
 
-test_that("get_storage_connection rejects a non-character secrets argument", {
+test_that("get_storage_connection rejects an unnamed secrets argument", {
   expect_error(
-    get_storage_connection(list(MINIO_ACCESS_KEY = "ak")),
-    "Assertion on 'secrets' failed"
+    get_storage_connection(list("ak", "zc")), "Assertion on 'secrets' failed"
+  )
+  expect_error(
+    get_storage_connection(c("ak", "zc")), "Assertion on 'secrets' failed"
   )
 })
