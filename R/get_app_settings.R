@@ -1,4 +1,4 @@
-# TODO: Convert it to R6 class maybe.
+# TODO: CONVERT IT TO R6 CLASS MAYBE?
 # nocov start
 # nolint start
 #' Get list of predefined app settings
@@ -80,6 +80,7 @@ set_data_labels <- function() {
   )
 }
 
+# TODO: CREATE A NEW S3 CLASSE FOR DB SCHEMA?
 #' @rdname get_app_settings
 set_db_schema_registry <- function() {
   list(
@@ -119,7 +120,10 @@ set_name_id_indicators <- function() {
 
 #' @rdname get_app_settings
 set_secret_names <- function() {
-  c("DB_HOST", "DB_PORT", "DB_NAME", "DB_USERNAME", "DB_PW")
+  c(
+    "MINIO_ACCESS_KEY", "MINIO_ENDPOINT", "MINIO_SECRET_KEY",
+    "DB_HOST", "DB_NAME", "DB_PORT", "DB_PW", "DB_USERNAME"
+  )
 }
 
 #' @rdname get_app_settings

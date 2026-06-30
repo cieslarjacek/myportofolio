@@ -34,10 +34,59 @@ make_sql_qualified_columns <- function(db_schema) {
 #'   state
 #'
 #' @details
-#' TODO: ADD LIST ELEMENTS/OBJECTS DESCRIPTION.
+#' Returned objects are used for storing a different types of data:
+#' * "chart_active_data" (`reactiveVal`)
+#' A named list of indicator data for the countries selected on the world map.
+#' The data are used for the trend chart and the decades table.
+#'
+#' * "chart_active_data_range" (`reactiveValues`)
+#' A two element object of data ranges for the trend chart.
+#' "absolute" (default) contains set of ranges extracted directly from the data.
+#' "current" (user modified) is based on user selection. Both sets of ranges
+#' consist two pairs of numeric values. One pair for x-axis and one pair for
+#' y-axis.
+#'
+#' * "chart_export_btn_click" (`reactiveVal`)
+#' A three element named integer vector of the user clicks on the export buttons
+#' for the trend chart.
+#'
+#' * "chart_with_one_trace" (`reactiveVal`)
+#' A `plotly` base trend chart with only one data trace.
+#'
+#' * "map_available_color" (`reactiveVal`)
+#' A character vector of colors in HEX format that is be used to mark countries
+#' selected on the world map.
+#'
+#' * "map_click_registry" (`reactiveValues`)
+#' A three element object of country lists.
+#' "active" - active countries, i.e. countries that are currently selected on
+#' the world map.
+#' "add" - a country that needs to be added to the trend chart and
+#' the decades table.
+#' "remove" - a country that needs to be removed from the the trend chart and
+#' the decades table.
+#' In all cases country is identified by its ISO code (id) and name (label).
+#'
+#' * "sql_db_schema" (`reactiveVal`)
+#' A named list used to extract data from MySQL database. Please check
+#' [DbDataExtractor()] and [get_app_settings()] for more details.
+#'
+#' * "table_aggregation_params" (`reactiveVal`)
+#' A two element named list with a function and a column names that will be used
+#' in the decades table.Please check [decadeTableServer] for more details.
+#'
+#' * "table_weight_data" (`reactiveVal`)
+#' A named list of weight data for the countries selected on the world map.
+#' The data are used with the relevant indicators for the decades table.
+#'
+#' * "ui_render_flag" (`reactiveVal`)
+#' A single Boolean value that indicates whether the trend chart and the decades
+#' table should be rendered.
 #'
 #' @param app_settings A list of predefined app settings (see
 #'   [get_app_settings()]).
+#' @return A named list of `reactiveVal` and `reactiveValues` objects in their
+#'   initial state. See Details.
 #' @keywords internal
 #' @noRd
 get_reactive_values_init <- function(app_settings = get_app_settings()) {
@@ -55,7 +104,7 @@ get_reactive_values_init <- function(app_settings = get_app_settings()) {
       )
     ),
     chart_with_one_trace = shiny::reactiveVal(),
-    map_active_color = shiny::reactiveVal(
+    map_available_color = shiny::reactiveVal(
       app_settings$color_palette$category
     ),
     map_click_registry = shiny::reactiveValues(
@@ -95,7 +144,7 @@ get_reactive_values_reset <- function(app_settings = get_app_settings()) {
       rep(0, length(aux_export_types)), aux_export_types
     ),
     chart_with_one_trace = NULL,
-    map_active_color = app_settings$color_palette$category,
+    map_available_color = app_settings$color_palette$category,
     map_click_registry = list(),
     sql_db_schema = NULL,
     table_aggregation_params = NULL,
@@ -265,7 +314,10 @@ update_aggregation_specs <- function(
 #' @return A named list with removed element.
 #' @export
 remove_list_elem <- function(list_object, elem_name) {
-  assert_with(checkmate::assert_list, list_object, assert_named_args())
+  checkmate::assert_list(
+    list_object,
+    any.missing = FALSE, all.missing = FALSE, names = "unique"
+  )
   checkmate::assert_string(elem_name)
 
   list_object[[elem_name]] <- NULL

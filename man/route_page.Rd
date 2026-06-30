@@ -18,7 +18,13 @@ are redirected. Default is "404 Not Found".}
 \item{url_path}{A string with the URL path.}
 }
 \value{
-\code{shiny.tag} or \code{shiny.tag.list} class object.
+\itemize{
+\item \code{route_page()} returns a function that accepts a Rook environment
+(\code{rook_env}) and, when called, returns the matched page.
+\item \code{select_page()} returns the matched page: a \code{shiny.tag} or
+\code{shiny.tag.list} class object if \code{url_path} matches an entry in
+\code{route_schema}, or \code{default} otherwise.
+}
 }
 \description{
 Routes to expected page (UI object) using the Rook environment properties.

@@ -15,20 +15,15 @@ for (obj_name in names(reactivevals_manager$init_objects)) {
 shiny::observeEvent(indicator_id(),
   {
     if (is_empty(indicator_id())) {
-      sql_db_schema(reactivevals_manager$reset("sql_db_schema"))
       table_aggregation_params(
         reactivevals_manager$reset("table_aggregation_params")
       )
     } else {
-      sql_db_schema(
-        reactivevals_manager$update("sql_db_schema")(indicator_id())
-      )
       table_aggregation_params(
         reactivevals_manager$update("table_aggregation_params")(indicator_id())
       )
     }
-
-    map_active_color(reactivevals_manager$reset("map_active_color"))
+    map_available_color(reactivevals_manager$reset("map_available_color"))
     chart_active_data(reactivevals_manager$reset("chart_active_data"))
     table_weight_data(reactivevals_manager$reset("table_weight_data"))
     ui_render_flag(reactivevals_manager$reset("ui_render_flag"))
@@ -46,6 +41,20 @@ shiny::observeEvent(indicator_id(),
     }
 
     session$sendCustomMessage("toggleTrendChartExportBtn", FALSE)
+
+    # adssad
+    sql_db_schema(reactivevals_manager$reset("sql_db_schema"))
+    if (!is_empty(indicator_id())) {
+      temp_indicator <- indicator_id()
+      session$onFlushed(
+        function() {
+          sql_db_schema(
+            reactivevals_manager$update("sql_db_schema")(temp_indicator)
+          )
+        },
+        once = TRUE
+      )
+    }
   },
   ignoreInit = TRUE
 )
@@ -55,32 +64,29 @@ world_geometry_data <- shiny::reactive({
   temp_sql_db_schema <- sql_db_schema()
   shiny::req(temp_sql_db_schema)
 
-  target_name_set <- app_settings$data_labels$world_trends
+  geometry_all <- app_cache$get("geometry_all")
+  if (cachem::is.key_missing(geometry_all)) {
+    message("Cache miss - downloading 'geometry_all' from the storage...")
+    storage_connection <- myportfolio::get_storage_connection(app_secrets)
+    storage_service <- myportfolio::StorageService$new(storage_connection)
+    geometry_all <- storage_service$get_geometry_all()
 
-  future.apply::future_sapply(
-    target_name_set,
-    function(target_name) {
-      db_connection <- DBI::dbConnect(
-        RMariaDB::MariaDB(),
-        dbname = app_secrets[["DB_NAME"]],
-        host = app_secrets[["DB_HOST"]],
-        port = as.integer(app_secrets[["DB_PORT"]]),
-        user = app_secrets[["DB_USERNAME"]],
-        password = app_secrets[["DB_PW"]]
-      )
+    app_cache$set("geometry_all", geometry_all)
+    message("'geometry_all' loaded and cached.")
+  }
 
-      db_extractor <- myportfolio::DbDataExtractor$new(
-        db_connection, temp_sql_db_schema
-      )
-      on.exit(db_extractor$disconnect(), add = TRUE)
-      sf::st_as_sf(
-        db_extractor[[paste0("get_geometry_", target_name)]](),
-        wkt = "geometry",
-        crs = "WGS84"
-      )
-    },
-    simplify = FALSE, USE.NAMES = TRUE
+  db_connection <- myportfolio::create_db_connection(app_secrets)
+  db_extractor <- myportfolio::DbDataExtractor$new(
+    db_connection, temp_sql_db_schema
   )
+  country_ids_df <- db_extractor$get_country_ids()
+  db_extractor$disconnect()
+
+  geom_split <- rev(split(
+    geometry_all, geometry_all$id %in% country_ids_df$country_id
+  ))
+  names(geom_split) <- app_settings$data_labels$world_trends
+  geom_split
 })
 
 country_label_data <- shiny::eventReactive(world_geometry_data(), {
@@ -90,9 +96,11 @@ country_label_data <- shiny::eventReactive(world_geometry_data(), {
 })
 
 # Render the world map.
-worldMapServer(
-  "world_trends", indicator_id, list(world_geometry_data, country_label_data)
-)
+system.time({
+  worldMapServer(
+    "world_trends", indicator_id, list(world_geometry_data, country_label_data)
+  )
+})
 
 # Register the world map click.
 shiny::observeEvent(input$`world_trends-map_shape_click`$id, {
@@ -137,7 +145,7 @@ shiny::observeEvent(input$`world_trends-map_shape_click`$id, {
     )
 
     session$sendCustomMessage(
-      "recolorLayer", list(c(temp_click$id, map_active_color()[1]))
+      "recolorLayer", list(c(temp_click$id, map_available_color()[1]))
     )
   }
 })
@@ -161,9 +169,10 @@ shiny::observeEvent(input$reset_selection, {
   }
   session$sendCustomMessage("toggleTrendChartExportBtn", FALSE)
 
-  # Clear the trend chart series.
+  # Clear the trend chart and the decade table series.
   ui_render_flag(reactivevals_manager$reset("ui_render_flag"))
   chart_active_data(reactivevals_manager$reset("chart_active_data"))
+  table_weight_data(reactivevals_manager$reset("table_weight_data"))
 })
 
 shiny::observe({
@@ -175,7 +184,7 @@ shiny::observe({
 # Send released color back to the handler.
 shiny::observeEvent(input$color_return, {
   shiny::req(input$color_return)
-  map_active_color(c(map_active_color(), input$color_return))
+  map_available_color(c(map_available_color(), input$color_return))
 })
 
 # Update "chart_active_data()".
@@ -185,22 +194,15 @@ shiny::observeEvent(map_click_registry$add$id, {
 
   # TODO: USE FUTURE AND (MAYBE) PROMISES HERE.
   # THE CHART SHOULD GET THE DATA BEFORE TABLE.
-  db_connection <- DBI::dbConnect(
-    RMariaDB::MariaDB(),
-    dbname = app_secrets[["DB_NAME"]],
-    host = app_secrets[["DB_HOST"]],
-    port = as.integer(app_secrets[["DB_PORT"]]),
-    user = app_secrets[["DB_USERNAME"]],
-    password = app_secrets[["DB_PW"]]
-  )
+  db_connection <- myportfolio::create_db_connection(app_secrets)
   db_extractor <- myportfolio::DbDataExtractor$new(
     db_connection, sql_db_schema()
   )
   temp_indicator_dt <- data.table::as.data.table(
-    db_extractor$get_indicator_data(map_click_registry$add$id)
+    db_extractor$get_indicator_values(map_click_registry$add$id)
   )
   temp_weight_dt <- data.table::as.data.table(
-    db_extractor$get_weight_data(map_click_registry$add$id)
+    db_extractor$get_weight_values(map_click_registry$add$id)
   )
   db_extractor$disconnect()
 
@@ -238,7 +240,7 @@ shiny::observeEvent(chart_active_data(),
 
     temp_plot <- myportfolio::build_trend_chart(
       chart_active_data()[map_click_registry$add$label],
-      myportfolio::make_chart_color_theme(map_active_color()[1]),
+      myportfolio::make_chart_color_theme(map_available_color()[1]),
       myportfolio::make_chart_config(
         indicator_id(), chart_active_data_range$absolute$y
       )
@@ -246,7 +248,7 @@ shiny::observeEvent(chart_active_data(),
     chart_with_one_trace(temp_plot)
 
     # Drop the color taken by the trend chart series.
-    shiny::isolate(map_active_color(map_active_color()[-1]))
+    shiny::isolate(map_available_color(map_available_color()[-1]))
   },
   ignoreNULL = FALSE
 )
@@ -274,13 +276,13 @@ observeEvent(map_click_registry$add$id, {
     "world_trends",
     list(
       dt_list = chart_active_data()[map_click_registry$add$label],
-      color = map_active_color()[1]
+      color = map_available_color()[1]
     ),
     yrange
   )
 
   # Drop the color taken by the trend chart series.
-  shiny::isolate(map_active_color(map_active_color()[-1]))
+  shiny::isolate(map_available_color(map_available_color()[-1]))
 })
 
 # Adjust the trend chart y-axis.
@@ -314,7 +316,7 @@ observeEvent(wt_chart_relayout_event(),
   ignoreNULL = TRUE
 )
 
-# Remove a series (trace) from the trend chart.
+# Remove a series (trace) from the trend chart and the decade table.
 shiny::observeEvent(map_click_registry$remove$id, {
   shiny::req(length(map_click_registry$active) >= 1)
   shiny::req(map_click_registry$remove$id)
@@ -322,6 +324,9 @@ shiny::observeEvent(map_click_registry$remove$id, {
   series_label <- map_click_registry$remove$label
   chart_active_data(
     myportfolio::remove_list_elem(chart_active_data(), series_label)
+  )
+  table_weight_data(
+    myportfolio::remove_list_elem(table_weight_data(), series_label)
   )
 
   chart_active_data_range$absolute$x <- myportfolio::extract_dt_list_range(

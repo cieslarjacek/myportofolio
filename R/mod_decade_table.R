@@ -107,10 +107,10 @@ get_table_description <- function(func_name) {
       "<b>geometric mean</b> of the indicator values transformed into growth factors.</p>"
     ),
     weighted.mean = c(
-        "<br><p>The table presents yearly indicator data aggregated by decade.</p>",
-        "<p>The calculations were performed using the ",
-        "<b>weighted mean</b> of the indicator values, weighted by the relevant population data.</p>"
-      ),
+      "<br><p>The table presents yearly indicator data aggregated by decade.</p>",
+      "<p>The calculations were performed using the ",
+      "<b>weighted mean</b> of the indicator values, weighted by the relevant population data.</p>"
+    ),
     none = c("<br><p>Aggregated data are not available for this indicator.")
   )
 }

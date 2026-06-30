@@ -10,7 +10,12 @@
 #' @param default A page (UI object) to which all invalid URL paths
 #'   are redirected. Default is "404 Not Found".
 #' @param url_path A string with the URL path.
-#' @return `shiny.tag` or `shiny.tag.list` class object.
+#' @return
+#' * `route_page()` returns a function that accepts a Rook environment
+#'   (`rook_env`) and, when called, returns the matched page.
+#' * `select_page()` returns the matched page: a `shiny.tag` or
+#'   `shiny.tag.list` class object if `url_path` matches an entry in
+#'   `route_schema`, or `default` otherwise.
 #' @export
 route_page <- function(route_schema, default = "404 Not Found") {
   function(rook_env) {

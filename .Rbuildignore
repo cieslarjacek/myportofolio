@@ -12,3 +12,5 @@
 ^renv\.lock$
 ^renv$
 ^scripts$
+^\.github$
+^docker-compose\.yaml$

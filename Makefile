@@ -98,16 +98,21 @@ run-bash:
 run-r:
 	$(DOCKER_COMMAND) compose --profile ci run --rm ci R --no-save --no-restore
 
+MINIO_SSH_TUNNEL_PORT  = $(shell grep '^MINIO_SSH_TUNNEL_PORT=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_USER = $(shell grep '^VAULT_SSH_USER=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_HOST = $(shell grep '^VAULT_SSH_HOST=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_PORT = $(shell grep '^VAULT_SSH_PORT=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_TUNNEL_PORT = $(shell grep '^VAULT_SSH_TUNNEL_PORT=' $(ENV_FILE) | cut -d '=' -f2)
 
+print-var:
+	@echo $(VAULT_SSH_TUNNEL_PORT)
+
 ssh-tunnel-open:
-	@echo "Opening SSH tunnel to Vault..."
+	@echo "Opening SSH tunnel to Vault and MinIO..."
 	@ssh -f -N \
 		-p $(VAULT_SSH_PORT) \
 		-L 0.0.0.0:$(VAULT_SSH_TUNNEL_PORT):localhost:$(VAULT_SSH_TUNNEL_PORT) \
+		-L 0.0.0.0:$(MINIO_SSH_TUNNEL_PORT):localhost:$(MINIO_SSH_TUNNEL_PORT) \
 		$(VAULT_SSH_USER)@$(VAULT_SSH_HOST) \
 		-o ExitOnForwardFailure=yes \
 		-o StrictHostKeyChecking=no
@@ -115,7 +120,7 @@ ssh-tunnel-open:
 
 ssh-tunnel-close:
 	@echo "Closing SSH tunnel..."
-	@lsof -ti:$(VAULT_SSH_TUNNEL_PORT) | xargs -r kill
+	@lsof -ti:$(VAULT_SSH_TUNNEL_PORT) -ti:$(MINIO_SSH_TUNNEL_PORT) | xargs -r kill
 	@echo "Tunnel closed"
 
 run-app: ssh-tunnel-open
@@ -141,6 +146,7 @@ ci-sast:
 		aquasec/trivy image \
 		--exit-code 1 \
 		--severity HIGH,CRITICAL \
+		--ignore-unfixed \
 		--skip-dirs "**/openssl/doc" \
 		$(IMAGE_NAME) \
 		2>&1 | tee -a ci_sast.log

@@ -28,9 +28,11 @@ RUN apt-get update \
     libglib2.0-0t64 \
     libgnutls30t64 \
     libssh-4 \
+    libssl-dev \
     libtasn1-6 \
     linux-libc-dev \
     locales \
+    openssl \
     && rm -rf /var/lib/apt/lists/*
 
 # R updates.
