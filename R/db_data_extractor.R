@@ -293,15 +293,13 @@ DbDataExtractor <- R6::R6Class(
 #'
 #' Creates a connection to relevant MySQL database using provided secrets.
 #'
-#' @param secrets A named character vector that contains a configuration data
+#' @param secrets A named object that contains a configuration data
 #'   for a MySQL database connection.
 #' @return A connection to a database. Please check [DBI::dbConnect()]
 #'   for more details.
 #' @export
 create_db_connection <- function(secrets) {
-  assert_with(
-    checkmate::assert_character, secrets, assert_named_character_args()
-  )
+  checkmate::assert_named(secrets, type = "unique")
 
   DBI::dbConnect(
     RMariaDB::MariaDB(),

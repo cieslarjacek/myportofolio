@@ -7,7 +7,7 @@
 create_db_connection(secrets)
 }
 \arguments{
-\item{secrets}{A named character vector that contains a configuration data
+\item{secrets}{A named object that contains a configuration data
 for a MySQL database connection.}
 }
 \value{

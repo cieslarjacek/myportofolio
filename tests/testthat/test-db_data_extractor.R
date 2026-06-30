@@ -286,7 +286,9 @@ test_that("create_db_connection() rejects an unnamed secrets vector", {
 
 test_that("create_db_connection rejects() a non-character secrets argument", {
   expect_error(
-    create_db_connection(list(DB_NAME = "mydb")),
-    "Assertion on 'secrets' failed:"
+    create_db_connection(list("mydb", "zc")), "Assertion on 'secrets' failed"
+  )
+  expect_error(
+    create_db_connection(c("mydb", "zc")), "Assertion on 'secrets' failed"
   )
 })
