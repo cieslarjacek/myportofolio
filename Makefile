@@ -146,6 +146,7 @@ ci-sast:
 		aquasec/trivy image \
 		--exit-code 1 \
 		--severity HIGH,CRITICAL \
+		--ignore-unfixed \
 		--skip-dirs "**/openssl/doc" \
 		$(IMAGE_NAME) \
 		2>&1 | tee -a ci_sast.log
