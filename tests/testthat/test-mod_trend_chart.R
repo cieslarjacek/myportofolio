@@ -1,5 +1,3 @@
-# TODO: ADD MORE TESTS TO INCREASE COVERAGE.
-# Chart.
 test_that("trendChartUI() creates expected HTML", {
   expect_snapshot(trendChartUI("x"))
 })
@@ -76,7 +74,186 @@ test_that(
   }
 )
 
-# Export button.
+test_that(
+  "updtTrendChartYaxisServer() sends a single correct 'relayout' proxy command",
+  {
+    captured_proxy_id <- NULL
+    captured_invoke <- NULL
+
+    local_mocked_bindings(
+      plotlyProxy = function(outputId, session) {
+        captured_proxy_id <<- outputId
+        "proxy_stub"
+      },
+      plotlyProxyInvoke = function(p, method, msg) {
+        captured_invoke <<- list(p = p, method = method, msg = msg)
+        "invoke_result_stub"
+      },
+      .package = "plotly"
+    )
+
+    shiny::testServer(
+      updtTrendChartYaxisServer,
+      args = list(id = "test", new_yrange = c(10, 90)),
+      {
+        expect_equal(captured_proxy_id, "chart")
+        expect_equal(captured_invoke$p, "proxy_stub")
+        expect_equal(captured_invoke$method, "relayout")
+        expect_equal(
+          captured_invoke$msg,
+          list(yaxis = list(range = make_yrange(c(10, 90))))
+        )
+      }
+    )
+  }
+)
+
+test_that(
+  "addTrendChartSeriesServer() rejects 'new_series' with the wrong length",
+  {
+    expect_error(
+      addTrendChartSeriesServer("test",
+        new_series = list(dt_list = list(countryX = data.frame(value = 1))),
+        new_yrange = c(0, 100)
+      )
+    )
+  }
+)
+
+test_that(
+  "addTrendChartSeriesServer() invokes correct 'addTraces' proxy command",
+  {
+    captured_proxy_id <- NULL
+    captured_invokes <- list()
+    captured_series_args_input <- NULL
+
+    local_mocked_bindings(
+      plotlyProxy = function(outputId, session) {
+        captured_proxy_id <<- outputId
+        "proxy_stub"
+      },
+      plotlyProxyInvoke = function(p, method, msg) {
+        captured_invokes[[length(captured_invokes) + 1]] <<- list(
+          p = p, method = method, msg = msg
+        )
+        paste0("invoke_result_", method)
+      },
+      .package = "plotly"
+    )
+    local_mocked_bindings(
+      get_series_args = function(dt_list, color) {
+        captured_series_args_input <<- list(dt_list = dt_list, color = color)
+        "series_args_stub"
+      }
+    )
+
+    test_series <- list(
+      dt_list = list(countryX = data.frame(value = c(1, 2, 3))),
+      color   = "#FF0000"
+    )
+
+    shiny::testServer(
+      addTrendChartSeriesServer,
+      args = list(
+        id = "test", new_series = test_series, new_yrange = c(0, 100)
+      ),
+      {
+        expect_equal(captured_proxy_id, "chart")
+        expect_length(captured_invokes, 2)
+
+        expect_equal(captured_invokes[[1]]$method, "relayout")
+        expect_equal(
+          captured_invokes[[1]]$msg,
+          list(yaxis = list(range = make_yrange(c(0, 100))))
+        )
+
+        expect_equal(captured_invokes[[2]]$method, "addTraces")
+        expect_equal(captured_invokes[[2]]$p, "invoke_result_relayout")
+        expect_equal(captured_invokes[[2]]$msg, "series_args_stub")
+
+        expect_equal(captured_series_args_input$dt_list, test_series$dt_list)
+        expect_equal(captured_series_args_input$color, test_series$color)
+      }
+    )
+  }
+)
+
+test_that(
+  "removeTrendChartSeriesServer() rejects a non-string 'series_label'",
+  {
+    expect_error(
+      removeTrendChartSeriesServer(
+        "test",
+        series_label = 123, new_yrange = c(0, 100)
+      )
+    )
+  }
+)
+
+test_that(
+  "removeTrendChartSeriesServer() sends 'removeTraces' custom message",
+  {
+    captured_message <- NULL
+    mock_session <- shiny::MockShinySession$new()
+    mock_session$sendCustomMessage <- function(type, message) {
+      captured_message <<- list(type = type, message = message)
+    }
+
+    captured_proxy_id <- NULL
+    captured_invoke <- NULL
+    local_mocked_bindings(
+      plotlyProxy = function(outputId, session) {
+        captured_proxy_id <<- outputId
+        "proxy_stub"
+      },
+      plotlyProxyInvoke = function(p, method, msg) {
+        captured_invoke <<- list(p = p, method = method, msg = msg)
+        "invoke_result_stub"
+      },
+      .package = "plotly"
+    )
+
+    shiny::testServer(
+      removeTrendChartSeriesServer,
+      args = list(
+        id = "test", series_label = "countryX", new_yrange = c(0, 100)
+      ),
+      session = mock_session,
+      {
+        expect_equal(captured_message$type, "removeTraces")
+        expect_equal(captured_message$message, "countryX")
+
+        expect_equal(captured_proxy_id, "chart")
+        expect_equal(captured_invoke$method, "relayout")
+        expect_equal(
+          captured_invoke$msg,
+          list(yaxis = list(range = make_yrange(c(0, 100))))
+        )
+      }
+    )
+  }
+)
+
 test_that("trendChartExportBtnUI() creates expected HTML", {
   expect_snapshot(trendChartExportBtnUI("y"))
 })
+
+test_that(
+  "trendChartExportBtnServer() renders a download link for each export type",
+  {
+    test_export_types <- c(png = "PNG image", csv = "CSV data")
+
+    shiny::testServer(
+      trendChartExportBtnServer,
+      args = list(id = "test", export_types = test_export_types),
+      {
+        html_str <- as.character(output$chart_export$html)
+
+        expect_true(grepl("chart_download_png", html_str, fixed = TRUE))
+        expect_true(grepl("PNG image", html_str, fixed = TRUE))
+        expect_true(grepl("chart_download_csv", html_str, fixed = TRUE))
+        expect_true(grepl("CSV data", html_str, fixed = TRUE))
+      }
+    )
+  }
+)
