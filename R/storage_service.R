@@ -101,14 +101,12 @@ StorageService <- R6::R6Class(
 #'
 #' Get a connection details for relevant MinIO storage from provided secrets.
 #'
-#' @param secrets A named character vector that contains a configuration data
+#' @param secrets A named object that contains a configuration data
 #'   for MinIO storage connection.
 #' @return A named list with connection details for MinIO storage.
 #' @export
 get_storage_connection <- function(secrets) {
-  assert_with(
-    checkmate::assert_character, secrets, assert_named_character_args()
-  )
+  checkmate::assert_named(secrets, type = "unique")
 
   list(
     bucket = paste(
