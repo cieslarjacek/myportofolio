@@ -154,12 +154,16 @@ test_that("'table_content' calls 'source_weight' when weight data is present", {
     },
     build_decade_table = function(decade_dt) "table_stub",
     add_js_code = function(table, name) {
-      structure(list(x = list(table = table, name = name)), class = c("datatables", "htmlwidget"))
+      structure(list(
+        x = list(table = table, name = name)
+      ), class = c("datatables", "htmlwidget"))
     }
   )
 
   agg_input <- list(
-    shiny::reactiveVal(list(function_name = "weighted.mean", column_name = "value")),
+    shiny::reactiveVal(
+      list(function_name = "weighted.mean", column_name = "value")
+    ),
     shiny::reactiveVal(data.table::data.table(country_id = 1L, value = 10)),
     shiny::reactiveVal(weight_dt)
   )
@@ -182,7 +186,9 @@ test_that("'table_content' calls 'source_weight' when weight data is present", {
 test_that(
   "get_table_description() returns a character vector for every function name",
   {
-    for (func_name in c("max", "mean", "geometric.mean", "weighted.mean", "none")) {
+    for (
+      func_name in c("max", "mean", "geometric.mean", "weighted.mean", "none")
+    ) {
       expect_type(get_table_description(func_name), "character")
     }
   }
