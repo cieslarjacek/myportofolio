@@ -66,14 +66,20 @@ world_geometry_data <- shiny::reactive({
 
   geometry_all <- app_cache$get("geometry_all")
   if (cachem::is.key_missing(geometry_all)) {
-    message("Cache miss - downloading 'geometry_all' from the storage...")
-    storage_connection <- myportfolio::get_storage_connection(app_secrets)
-    storage_service <- myportfolio::StorageService$new(storage_connection)
+    message("Cache missing - downloading 'geometry_all' from the storage...")
+    storage_service <- myportfolio::StorageService$new(
+      myportfolio::get_storage_connection(app_secrets)
+    )
     geometry_all <- storage_service$get_geometry_all()
 
-    app_cache$set("geometry_all", geometry_all)
-    message("'geometry_all' loaded and cached.")
+    if (myportfolio::is_empty(geometry_all)) {
+      message("Failed to load 'geometry_all' - not caching.")
+    } else {
+      app_cache$set("geometry_all", geometry_all)
+      message("'geometry_all' loaded and cached.")
+    }
   }
+  shiny::req(geometry_all)
 
   db_connection <- myportfolio::create_db_connection(app_secrets)
   db_extractor <- myportfolio::DbDataExtractor$new(

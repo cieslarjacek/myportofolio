@@ -108,19 +108,18 @@ jobs:
           script: |
             ENV_DIR=/opt/${{ inputs.app_name }}/${{ inputs.environment }}
 
-            # Append APP_VERSION to existing .env file
+            # Append APP_VERSION, VAULT_ADDRESS and VAULT_TOKEN to existing .env file
             sed -i '/^APP_VERSION=/d' ${ENV_DIR}/.env
+            sed -i '/^VAULT_ADDRESS=/d' ${ENV_DIR}/.env
+            sed -i '/^VAULT_TOKEN=/d' ${ENV_DIR}/.env
             echo "APP_VERSION=${{ inputs.version }}" >> ${ENV_DIR}/.env
+            echo "VAULT_ADDRESS=${{ secrets.VAULT_ADDRESS }}" >> ${ENV_DIR}/.env
+            echo "VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}" >> ${ENV_DIR}/.env
 
             # Pull new image and restart via compose
-            # VAULT_ADDRESS and VAULT_TOKEN are passed as env vars, not written to .env
             docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/${{ inputs.app_name }}-${{ inputs.environment }}:${{ inputs.version }}
             cd ${ENV_DIR}
-            VAULT_ADDRESS=${{ secrets.VAULT_ADDRESS }} \
-            VAULT_TOKEN=${{ secrets.VAULT_TOKEN }} \
             docker compose down
-            VAULT_ADDRESS=${{ secrets.VAULT_ADDRESS }} \
-            VAULT_TOKEN=${{ secrets.VAULT_TOKEN }} \
             docker compose up -d
 
             # Clean up old images
