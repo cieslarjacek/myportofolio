@@ -1,11 +1,11 @@
-# TODO: CLEAN THE LIST OF PACKAGES.
+# Load used packages.
 library(bslib)
-library(data.table)
 library(cachem)
+library(data.table)
 library(DBI)
 library(DT)
-library(future)
 library(future.apply)
+library(future)
 library(ggplot2)
 library(glue)
 library(jsonlite)
@@ -20,6 +20,7 @@ library(shiny)
 library(shinycssloaders)
 library(shinyWidgets)
 
+# Load settings and secrets.
 app_settings <- myportfolio::get_app_settings()
 color_palette <- app_settings$color_palette
 
