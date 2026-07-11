@@ -7,30 +7,30 @@
 #' environment.
 #'
 #' @param route_schema A list of URL paths to target pages (UI objects) mapping.
-#' @param default A page (UI object) to which all invalid URL paths
-#'   are redirected. Default is "404 Not Found".
+#' @param default_ui A page (UI object) to which all invalid URL paths
+#'   are redirected. Default is `"404 Not Found"`.
 #' @param url_path A string with the URL path.
 #' @return
 #' * `route_page()` returns a function that accepts a Rook environment
 #'   (`rook_env`) and, when called, returns the matched page.
 #' * `select_page()` returns the matched page: a `shiny.tag` or
 #'   `shiny.tag.list` class object if `url_path` matches an entry in
-#'   `route_schema`, or `default` otherwise.
+#'   `route_schema`, or `default_ui` otherwise.
 #' @export
-route_page <- function(route_schema, default = "404 Not Found") {
+route_page <- function(route_schema, default_ui = "404 Not Found") {
   function(rook_env) {
-    select_page(rook_env$PATH_INFO, route_schema, default)
+    select_page(rook_env$PATH_INFO, route_schema, default_ui)
   }
 }
 
 #' @rdname route_page
-select_page <- function(url_path, route_schema, default) {
+select_page <- function(url_path, route_schema, default_ui) {
   checkmate::assert_string(url_path, pattern = "^/")
   checkmate::assert_list(route_schema, names = "named")
-  checkmate::assert_string(default)
+  checkmate::assert_string(default_ui)
 
   if (!(url_path %in% names(route_schema))) {
-    return(default)
+    return(default_ui)
   }
   route_schema[[url_path]]
 }

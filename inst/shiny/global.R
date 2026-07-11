@@ -1,3 +1,7 @@
+# Setup the logger.
+app_logger <- SessionLogger$new()
+app_logger$start()
+
 # Load used packages.
 library(bslib)
 library(cachem)
@@ -34,5 +38,6 @@ if (as.logical(Sys.getenv("LOCAL_RUN"))) {
 # Enable in memory caching that is shared across all sessions.
 app_cache <- cachem::cache_mem()
 
+# TODO: CHECK AND REMOVE IF NOT NEEDED.
 # IMPORTANT: Keep this at the end to avoid errors in `future` functions.
 future::plan(future::multisession)

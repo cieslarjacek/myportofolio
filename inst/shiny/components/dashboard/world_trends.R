@@ -79,7 +79,6 @@ world_geometry_data <- shiny::reactive({
       message("'geometry_all' loaded and cached.")
     }
   }
-  shiny::req(geometry_all)
 
   db_connection <- myportfolio::create_db_connection(app_secrets)
   db_extractor <- myportfolio::DbDataExtractor$new(

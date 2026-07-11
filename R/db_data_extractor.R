@@ -1,3 +1,6 @@
+#' @include make_active_field.R
+NULL
+
 #' Make SQL query for "clickable"/"notclickable" geometry data
 #'
 #' Makes SQL query for fetching country specific "clickable"/"notclickable"
@@ -280,12 +283,7 @@ DbDataExtractor <- R6::R6Class(
   ),
   active = list(
     #' @field query A read only list of SQL queries created inside the class.
-    query = function(value) {
-      if (!missing(value)) {
-        stop("'sql_query' is read only.", call. = FALSE)
-      }
-      private$.query
-    }
+    query = make_active_field("query")
   )
 )
 

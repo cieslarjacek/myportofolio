@@ -1,3 +1,6 @@
+#' @include make_active_field.R
+NULL
+
 #' Make SQL table column names in qualified format
 #'
 #' Converts SQL table column names to a qualified column name format.
@@ -211,12 +214,7 @@ ReactiveValuesManager <- R6::R6Class(
   active = list(
     #' @field init_objects A read only list of `reactiveValues`
     #'   and `reactiveVal` objects in their initial state.
-    init_objects = function(value) {
-      if (!missing(value)) {
-        stop("'init_objects' is read only.", call. = FALSE)
-      }
-      private$.init_objects
-    }
+    init_objects = make_active_field("init_objects")
   )
 )
 
