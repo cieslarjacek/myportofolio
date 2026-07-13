@@ -104,9 +104,6 @@ VAULT_SSH_HOST = $(shell grep '^VAULT_SSH_HOST=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_PORT = $(shell grep '^VAULT_SSH_PORT=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_TUNNEL_PORT = $(shell grep '^VAULT_SSH_TUNNEL_PORT=' $(ENV_FILE) | cut -d '=' -f2)
 
-print-var:
-	@echo $(VAULT_SSH_TUNNEL_PORT)
-
 ssh-tunnel-open:
 	@echo "Opening SSH tunnel to Vault and MinIO..."
 	@ssh -f -N \
@@ -123,6 +120,8 @@ ssh-tunnel-close:
 	@lsof -ti:$(VAULT_SSH_TUNNEL_PORT) -ti:$(MINIO_SSH_TUNNEL_PORT) | xargs -r kill
 	@echo "Tunnel closed"
 
+# IMPORTANT: Run only with "LOCAL_RUN=false" in ".env" file.
+# IMPORTANT: Remember to updated "VAULT_TOKEN" in ".env" file.
 run-app: ssh-tunnel-open
 	$(DOCKER_COMMAND) compose up shiny-app; \
 	$(MAKE) ssh-tunnel-close

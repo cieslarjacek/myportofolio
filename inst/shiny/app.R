@@ -6,7 +6,7 @@ source("server.R")
 shiny::onStop(function() {
   app_logger$stop()
   if (!as.logical(Sys.getenv("LOCAL_RUN"))) {
-    app_logger$put()
+    app_logger$put(myportfolio::get_storage_connection(app_secrets))
   }
 })
 

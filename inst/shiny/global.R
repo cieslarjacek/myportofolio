@@ -1,5 +1,5 @@
 # Setup the logger.
-app_logger <- SessionLogger$new()
+app_logger <- myportfolio::SessionLogger$new()
 app_logger$start()
 
 # Load used packages.
