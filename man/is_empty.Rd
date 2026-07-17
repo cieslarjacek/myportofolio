@@ -16,7 +16,6 @@ A single logical value.
 Invalidates provided object.
 }
 \details{
-#'
 It is a modified application of \code{invalid()} from \pkg{gtools} -
 \url{https://github.com/r-gregmisc/gtools/blob/master/R/invalid.R}.
 }

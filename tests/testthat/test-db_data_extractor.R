@@ -219,7 +219,7 @@ test_that("query active binding exposes built SQL and is read-only", {
 
   expect_type(test_extractor$query, "list")
   expect_true(is.character(test_extractor$query$country_ids))
-  expect_error(test_extractor$query <- list(), "read only")
+  expect_error(test_extractor$query <- list(), "read-only")
 })
 
 test_that("disconnect() delegates to dbDisconnect()", {

@@ -59,8 +59,8 @@ test_that("select_page() throws argument type error - 'route_schema'", {
   expect_error(select_page("/x", character(0), "a"), error_msg)
 })
 
-test_that("select_page() throws argument type error - 'default'", {
-  error_msg <- "Assertion on 'default' failed"
+test_that("select_page() throws argument type error - 'default_ui'", {
+  error_msg <- "Assertion on 'default_ui' failed"
 
   expect_error(select_page("/x", list(), 1), error_msg)
   expect_error(select_page("/x", list(), TRUE), error_msg)

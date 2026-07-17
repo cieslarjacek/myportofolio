@@ -5,15 +5,15 @@
 \alias{select_page}
 \title{Route page}
 \usage{
-route_page(route_schema, default = "404 Not Found")
+route_page(route_schema, default_ui = "404 Not Found")
 
-select_page(url_path, route_schema, default)
+select_page(url_path, route_schema, default_ui)
 }
 \arguments{
 \item{route_schema}{A list of URL paths to target pages (UI objects) mapping.}
 
-\item{default}{A page (UI object) to which all invalid URL paths
-are redirected. Default is "404 Not Found".}
+\item{default_ui}{A page (UI object) to which all invalid URL paths
+are redirected. Default is \code{"404 Not Found"}.}
 
 \item{url_path}{A string with the URL path.}
 }
@@ -23,7 +23,7 @@ are redirected. Default is "404 Not Found".}
 (\code{rook_env}) and, when called, returns the matched page.
 \item \code{select_page()} returns the matched page: a \code{shiny.tag} or
 \code{shiny.tag.list} class object if \code{url_path} matches an entry in
-\code{route_schema}, or \code{default} otherwise.
+\code{route_schema}, or \code{default_ui} otherwise.
 }
 }
 \description{

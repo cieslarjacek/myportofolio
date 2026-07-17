@@ -9,6 +9,8 @@ services:
       - ${ENV_FILE}
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    stop_signal: SIGINT
+    stop_grace_period: 30s
   ci:
     build:
       context: .

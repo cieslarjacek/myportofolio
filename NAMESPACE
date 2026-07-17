@@ -3,6 +3,7 @@
 export(DbDataExtractor)
 export(ReactiveValuesManager)
 export(SecretReader)
+export(SessionLogger)
 export(StorageService)
 export(addTrendChartSeriesServer)
 export(add_default_spinner)
