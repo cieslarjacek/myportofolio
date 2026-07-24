@@ -14,6 +14,8 @@ NULL
 #' @field log_file_name A log file name in "%Y%m%d_%H%M%S.log" format.
 #' @field log_file_path A path to the log file.
 #' @field log_file_con A connection to the log file.
+#' @field current_session_token A currently active session token for the given
+#'    visit ID.
 #'
 #' @export
 SessionLogger <- R6::R6Class(
@@ -28,7 +30,9 @@ SessionLogger <- R6::R6Class(
     # A path to the log file.
     .log_file_path = NULL,
     # A connection to the log file.
-    .log_file_con = NULL
+    .log_file_con = NULL,
+    # A currently active session token for the given visit ID.
+    .current_session_token = NULL
   ),
   public = list(
     #' @description
@@ -44,6 +48,7 @@ SessionLogger <- R6::R6Class(
       private$.log_file_path <- file.path(
         private$.log_file_dir, private$.log_file_name
       )
+      private$.current_session_token <- list()
     },
     #' @description
     #' Starts capturing console output for this session.
@@ -87,16 +92,22 @@ SessionLogger <- R6::R6Class(
         format(Sys.time(), tz = "Europe/Madrid", format = "%Y-%m-%d %H:%M:%S"),
         event_name,
         shiny::isolate(session$clientData$url_pathname),
-        get_cookie_value(session$request$HTTP_COOKIE, "visit_temp_id"),
+        get_cookie_value(session$request$HTTP_COOKIE, "visit_id"),
         session$token
       ))
     },
     #' @description
     #' Logs a session start event with timestamp, `PATH_INFO`, `visit_id`
     #' cookie value and session token.
+    #' Registers this session as the currently active sub-session for its
+    #' `visit_id`.
     #'
     #' @param session A Shiny session object.
     log_session_start = function(session) {
+      visit_id <- get_cookie_value(session$request$HTTP_COOKIE, "visit_id") %>%
+        check_cookie_value()
+      private$.current_session_token[[visit_id]] <- session$token
+
       self$log_session_event("START", session)
     },
     #' @description
@@ -111,7 +122,7 @@ SessionLogger <- R6::R6Class(
   active = make_active_field_wrapper(
     c(
       "time_stamp", "log_file_dir", "log_file_name", "log_file_path",
-      "log_file_con"
+      "log_file_con", "current_session_token"
     )
   )
 )

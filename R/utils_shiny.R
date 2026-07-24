@@ -110,13 +110,17 @@ set_validation_message <- function(output_id) {
 #'
 #' @param cookie_header A raw Cookie header string (e.g. "a=1; b=2").
 #' @param cookie_name A single character string with a cookie name to extract.
-#' @return The cookie value or NA if not found.
+#' @param cookie_value A single character string with a cookie value.
+#' @return
+#' * `get_cookie_value()` returns a single character string with the cookie
+#'   value or NA if not found.
+#' * `check_cookie_value()` returns the cookie value or "unknown" if empty.
 #' @export
 get_cookie_value <- function(cookie_header, cookie_name) {
   checkmate::assert_string(cookie_header, na.ok = TRUE, null.ok = TRUE)
   checkmate::assert_string(cookie_name, na.ok = TRUE, null.ok = TRUE)
 
-  if (is_empty(cookie_header) || is_empty(cookie_header)) {
+  if (is_empty(cookie_header) || is_empty(cookie_name)) {
     return(NA_character_)
   }
 
@@ -131,4 +135,10 @@ get_cookie_value <- function(cookie_header, cookie_name) {
   } else {
     matched_value[[1]][2]
   }
+}
+
+#' @rdname get_cookie_value
+#' @export
+check_cookie_value <- function(cookie_value) {
+  ifelse(is_empty(cookie_value), "unknown", cookie_value)
 }

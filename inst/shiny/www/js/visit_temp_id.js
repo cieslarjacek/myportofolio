@@ -9,11 +9,11 @@
   }
 
   // Create and store new ID cookie.
-  if (!getCookie('visit_temp_id')) {
+  if (!getCookie('visit_id')) {
     var id = crypto.randomUUID
       ? crypto.randomUUID()
       : Date.now() + '-' + Math.random().toString(36).slice(2)
     document.cookie =
-      'visit_temp_id=' + id + '; path=/; max-age=86400; SameSite=Lax'
+      'visit_id=' + id + '; path=/; max-age=86400; SameSite=Lax'
   }
 })()
