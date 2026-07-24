@@ -131,7 +131,7 @@ get_cookie_value <- function(cookie_header, cookie_name) {
   matched_value <- Filter(function(x) x[1] == cookie_name, key_value_pairs)
 
   if (is_empty(matched_value)) {
-    return(NA_character_)
+    NA_character_
   } else {
     matched_value[[1]][2]
   }
