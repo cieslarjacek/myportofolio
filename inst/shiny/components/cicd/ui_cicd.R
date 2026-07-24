@@ -7,6 +7,7 @@ cicd_page <- bslib::page_fluid(
       type = "text/css",
       href = "css/styles_dashboard.css"
     ),
+    shiny::tags$script(src = "js/visit_temp_id.js"),
     shiny::tags$title(paste("Homepage - Jacek Dev", format(Sys.Date(), "%Y")))
   ),
   # Body header.

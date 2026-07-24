@@ -75,6 +75,37 @@ SessionLogger <- R6::R6Class(
         bucket = storage_con$bucket,
         opts = storage_con[setdiff(names(storage_con), "bucket")]
       )
+    },
+    #' @description
+    #' Writes a uniform session event line to the log.
+    #'
+    #' @param event_name A character string with the relevant event name.
+    #' @param session A Shiny session object.
+    log_session_event = function(event_name, session) {
+      message(sprintf(
+        "[%s] SESSION %s | path=%s | visit_id=%s | session_token=%s",
+        format(Sys.time(), tz = "Europe/Madrid", format = "%Y-%m-%d %H:%M:%S"),
+        event_name,
+        shiny::isolate(session$clientData$url_pathname),
+        get_cookie_value(session$request$HTTP_COOKIE, "visit_temp_id"),
+        session$token
+      ))
+    },
+    #' @description
+    #' Logs a session start event with timestamp, `PATH_INFO`, `visit_id`
+    #' cookie value and session token.
+    #'
+    #' @param session A Shiny session object.
+    log_session_start = function(session) {
+      self$log_session_event("START", session)
+    },
+    #' @description
+    #' Logs a session end event with timestamp, `PATH_INFO`, `visit_id`
+    #' cookie value and session token.
+    #'
+    #' @param session A Shiny session object.
+    log_session_end = function(session) {
+      self$log_session_event("END", session)
     }
   ),
   active = make_active_field_wrapper(

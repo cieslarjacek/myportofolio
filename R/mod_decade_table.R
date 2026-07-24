@@ -18,7 +18,7 @@
 #' @export
 decadeTableUI <- function(id) {
   bslib::card_body(
-    myportfolio::add_default_spinner(
+    add_default_spinner(
       shiny::uiOutput(shiny::NS(id, "table_output"))
     )
   )
