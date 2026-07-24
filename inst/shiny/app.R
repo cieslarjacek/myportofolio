@@ -2,7 +2,7 @@ source("global.R")
 source("ui.R")
 source("server.R")
 
-# Stop the logger and save the logs.
+# Stop the logger and save the logs on the process stop.
 shiny::onStop(function() {
   app_logger$stop()
   if (!as.logical(Sys.getenv("LOCAL_RUN"))) {

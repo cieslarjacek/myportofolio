@@ -103,3 +103,42 @@ set_validation_message <- function(output_id) {
 }
 # nolint end
 # nocov end
+
+#' Extract cookie value by name
+#'
+#' Gets a specific cookie value from a raw HTTP Cookie header.
+#'
+#' @param cookie_header A raw Cookie header string (e.g. "a=1; b=2").
+#' @param cookie_name A single character string with a cookie name to extract.
+#' @param cookie_value A single character string with a cookie value.
+#' @return
+#' * `get_cookie_value()` returns a single character string with the cookie
+#'   value or NA if not found.
+#' * `check_cookie_value()` returns the cookie value or "unknown" if empty.
+#' @export
+get_cookie_value <- function(cookie_header, cookie_name) {
+  checkmate::assert_string(cookie_header, na.ok = TRUE, null.ok = TRUE)
+  checkmate::assert_string(cookie_name, na.ok = TRUE, null.ok = TRUE)
+
+  if (is_empty(cookie_header) || is_empty(cookie_name)) {
+    return(NA_character_)
+  }
+
+  key_value_pairs <- cookie_header %>%
+    strsplit(";\\s*") %>%
+    unlist() %>%
+    strsplit("=")
+  matched_value <- Filter(function(x) x[1] == cookie_name, key_value_pairs)
+
+  if (is_empty(matched_value)) {
+    NA_character_
+  } else {
+    matched_value[[1]][2]
+  }
+}
+
+#' @rdname get_cookie_value
+#' @export
+check_cookie_value <- function(cookie_value) {
+  ifelse(is_empty(cookie_value), "unknown", cookie_value)
+}

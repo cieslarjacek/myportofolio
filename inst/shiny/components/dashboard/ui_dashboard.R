@@ -15,6 +15,7 @@ dashboard_page <- bslib::page_fluid(
     ),
     shiny::tags$link(rel = "stylesheet", href = "lib/leaflet/leaflet.css"),
     shiny::tags$script(src = "lib/leaflet/leaflet.js"),
+    shiny::tags$script(src = "js/visit_temp_id.js"),
     shiny::tags$title(paste("Homepage - Jacek Dev", format(Sys.Date(), "%Y")))
   ),
   # Body header.

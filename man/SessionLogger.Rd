@@ -21,6 +21,9 @@ and when to write logs to MinIO storage.
 \item{\code{log_file_path}}{A path to the log file.}
 
 \item{\code{log_file_con}}{A connection to the log file.}
+
+\item{\code{current_session_token}}{A currently active session token for the given
+visit ID.}
 }
 \if{html}{\out{</div>}}
 }
@@ -31,6 +34,9 @@ and when to write logs to MinIO storage.
 \item \href{#method-SessionLogger-start}{\code{SessionLogger$start()}}
 \item \href{#method-SessionLogger-stop}{\code{SessionLogger$stop()}}
 \item \href{#method-SessionLogger-put}{\code{SessionLogger$put()}}
+\item \href{#method-SessionLogger-log_session_event}{\code{SessionLogger$log_session_event()}}
+\item \href{#method-SessionLogger-log_session_start}{\code{SessionLogger$log_session_start()}}
+\item \href{#method-SessionLogger-log_session_end}{\code{SessionLogger$log_session_end()}}
 \item \href{#method-SessionLogger-clone}{\code{SessionLogger$clone()}}
 }
 }
@@ -81,6 +87,63 @@ Reads and writes relevant log file to the target storage bucket.
 \describe{
 \item{\code{storage_con}}{A connection details for MinIO storage. Please check
 \code{\link[aws.s3:s3HTTP]{aws.s3::s3HTTP()}} for more details.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SessionLogger-log_session_event"></a>}}
+\if{latex}{\out{\hypertarget{method-SessionLogger-log_session_event}{}}}
+\subsection{Method \code{log_session_event()}}{
+Writes a uniform session event line to the log.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SessionLogger$log_session_event(event_name, session)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{event_name}}{A character string with the relevant event name.}
+
+\item{\code{session}}{A Shiny session object.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SessionLogger-log_session_start"></a>}}
+\if{latex}{\out{\hypertarget{method-SessionLogger-log_session_start}{}}}
+\subsection{Method \code{log_session_start()}}{
+Logs a session start event with timestamp, \code{PATH_INFO}, \code{visit_id}
+cookie value and session token.
+Registers this session as the currently active sub-session for its
+\code{visit_id}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SessionLogger$log_session_start(session)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{session}}{A Shiny session object.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SessionLogger-log_session_end"></a>}}
+\if{latex}{\out{\hypertarget{method-SessionLogger-log_session_end}{}}}
+\subsection{Method \code{log_session_end()}}{
+Logs a session end event with timestamp, \code{PATH_INFO}, \code{visit_id}
+cookie value and session token.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SessionLogger$log_session_end(session)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{session}}{A Shiny session object.}
 }
 \if{html}{\out{</div>}}
 }

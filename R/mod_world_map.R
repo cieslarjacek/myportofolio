@@ -26,7 +26,7 @@ worldMapServer <- function(id, indic_id, data_pair) {
 
   shiny::moduleServer(id, function(input, output, session) {
     output$map <- leaflet::renderLeaflet({
-      run_validate_need(!myportfolio::is_empty(indic_id()))
+      run_validate_need(!is_empty(indic_id()))
       shiny::req(label_data())
 
       build_world_map(

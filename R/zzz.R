@@ -1,6 +1,13 @@
 globalVariables(
   c(
-    ".", "Decade", "country_id", "country_name", "time_period", "value",
+    ".",
+    "app_logger",
+    "app_secrets",
+    "country_id",
+    "country_name",
+    "Decade",
+    "time_period",
+    "value",
     "weight"
   )
 )
