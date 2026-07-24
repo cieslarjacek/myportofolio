@@ -8,13 +8,14 @@ test_that("initialize() sets expected values for private fields", {
     test_logger$log_file_path, file.path("logs", test_logger$log_file_name)
   )
   expect_null(test_logger$log_file_con)
+  expect_equal(test_logger$current_session_token, list())
 })
 
 test_that("active binding fields are all read-only", {
   test_logger <- SessionLogger$new()
   for (field in c(
     "time_stamp", "log_file_dir", "log_file_name",
-    "log_file_path", "log_file_con"
+    "log_file_path", "log_file_con", "current_session_token"
   )) {
     expect_error(
       test_logger[[field]] <- "x",
@@ -128,3 +129,117 @@ test_that(
     expect_true(any(grepl("green text", captured_x, fixed = TRUE)))
   }
 )
+
+test_that("log_session_event() logs a correct message", {
+  test_logger <- SessionLogger$new()
+  test_session <- make_test_session()
+
+  test_msgs <- testthat::capture_messages(
+    test_logger$log_session_event("START", test_session)
+  )
+
+  expect_true(any(grepl("SESSION START", test_msgs, fixed = TRUE)))
+  expect_true(any(grepl("path=/some/path", test_msgs, fixed = TRUE)))
+  expect_true(any(grepl("visit_id=abc123", test_msgs, fixed = TRUE)))
+  expect_true(any(grepl("session_token=tok_xyz", test_msgs, fixed = TRUE)))
+})
+
+test_that("log_session_event() falls back to NA for 'visit_id'", {
+  test_logger <- SessionLogger$new()
+  test_session <- make_test_session(cookie = "other=1")
+
+  test_msgs <- testthat::capture_messages(
+    test_logger$log_session_event("START", test_session)
+  )
+
+  expect_true(any(grepl("visit_id=NA", test_msgs, fixed = TRUE)))
+})
+
+test_that(
+  "log_session_start() logs a START event and registers the session token",
+  {
+    test_logger <- SessionLogger$new()
+    test_session <- make_test_session(
+      cookie = "visit_id=visitor42", token = "tok1"
+    )
+
+    test_msgs <- testthat::capture_messages(
+      test_logger$log_session_start(test_session)
+    )
+
+    expect_equal(test_logger$current_session_token[["visitor42"]], "tok1")
+    expect_true(any(grepl("SESSION START", test_msgs, fixed = TRUE)))
+  }
+)
+
+test_that(
+  "log_session_start() registers 'unknown' token when the 'visit_id' is absent",
+  {
+    test_logger <- SessionLogger$new()
+    test_session <- make_test_session(cookie = "other=1", token = "tok2")
+
+    testthat::capture_messages(test_logger$log_session_start(test_session))
+
+    expect_equal(test_logger$current_session_token[["unknown"]], "tok2")
+  }
+)
+
+test_that(
+  "log_session_start() overwrites the token for a repeated 'visit_id'",
+  {
+    test_logger <- SessionLogger$new()
+    first_session <- make_test_session(
+      cookie = "visit_id=visitorA", token = "tok_old"
+    )
+    second_session <- make_test_session(
+      cookie = "visit_id=visitorA", token = "tok_new"
+    )
+
+    testthat::capture_messages(test_logger$log_session_start(first_session))
+    testthat::capture_messages(test_logger$log_session_start(second_session))
+
+    expect_equal(test_logger$current_session_token[["visitorA"]], "tok_new")
+  }
+)
+
+test_that(
+  "log_session_start() tracks separate tokens for separate 'visit_id'",
+  {
+    test_logger <- SessionLogger$new()
+    session_a <- make_test_session(cookie = "visit_id=visitorA", token = "tokA")
+    session_b <- make_test_session(cookie = "visit_id=visitorB", token = "tokB")
+
+    testthat::capture_messages(test_logger$log_session_start(session_a))
+    testthat::capture_messages(test_logger$log_session_start(session_b))
+
+    expect_equal(test_logger$current_session_token[["visitorA"]], "tokA")
+    expect_equal(test_logger$current_session_token[["visitorB"]], "tokB")
+  }
+)
+
+test_that("log_session_end() logs an END event", {
+  test_logger <- SessionLogger$new()
+  test_session <- make_test_session()
+
+  test_msgs <- testthat::capture_messages(
+    test_logger$log_session_end(test_session)
+  )
+
+  expect_true(any(grepl("SESSION END", test_msgs, fixed = TRUE)))
+})
+
+test_that("log_session_end() does not modify 'current_session_token'", {
+  test_logger <- SessionLogger$new()
+  start_session <- make_test_session(
+    cookie = "visit_id=visitorA", token = "tokA"
+  )
+  end_session <- make_test_session(
+    cookie = "visit_id=visitorA", token = "tokA"
+  )
+
+  testthat::capture_messages(test_logger$log_session_start(start_session))
+  testthat::capture_messages(test_logger$log_session_end(end_session))
+
+  expect_equal(test_logger$current_session_token[["visitorA"]], "tokA")
+  expect_length(test_logger$current_session_token, 1)
+})
