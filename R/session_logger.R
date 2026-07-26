@@ -14,8 +14,8 @@ NULL
 #' @field log_file_name A log file name in "%Y%m%d_%H%M%S.log" format.
 #' @field log_file_path A path to the log file.
 #' @field log_file_con A connection to the log file.
-#' @field current_session_token A currently active session token for the given
-#'    visit ID.
+#' @field current_session_token A list of currently active session tokens for
+#'    the given visit ID.
 #'
 #' @export
 SessionLogger <- R6::R6Class(
@@ -82,6 +82,26 @@ SessionLogger <- R6::R6Class(
       )
     },
     #' @description
+    #' Register the currently active session token for a given `visit_id`.
+    #'
+    #' @param session A Shiny session object.
+    set_session_token = function(session) {
+      visit_id <- get_cookie_value(session$request$HTTP_COOKIE, "visit_id") %>%
+        check_cookie_value()
+      private$.current_session_token[[visit_id]] <- session$token
+    },
+    #' @description
+    #' Returns the currently active session token registered for a given
+    #'   `visit_id`.
+    #'
+    #' @param session A Shiny session object.
+    #' @return A single session token string or `NULL` if not found.
+    get_session_token = function(session) {
+      visit_id <- get_cookie_value(session$request$HTTP_COOKIE, "visit_id") %>%
+        check_cookie_value()
+      private$.current_session_token[[visit_id]]
+    },
+    #' @description
     #' Writes a uniform session event line to the log.
     #'
     #' @param event_name A character string with the relevant event name.
@@ -99,15 +119,9 @@ SessionLogger <- R6::R6Class(
     #' @description
     #' Logs a session start event with timestamp, `PATH_INFO`, `visit_id`
     #' cookie value and session token.
-    #' Registers this session as the currently active sub-session for its
-    #' `visit_id`.
     #'
     #' @param session A Shiny session object.
     log_session_start = function(session) {
-      visit_id <- get_cookie_value(session$request$HTTP_COOKIE, "visit_id") %>%
-        check_cookie_value()
-      private$.current_session_token[[visit_id]] <- session$token
-
       self$log_session_event("START", session)
     },
     #' @description

@@ -42,7 +42,6 @@ shiny::observeEvent(indicator_id(),
 
     session$sendCustomMessage("toggleTrendChartExportBtn", FALSE)
 
-    # adssad
     sql_db_schema(reactivevals_manager$reset("sql_db_schema"))
     if (!is_empty(indicator_id())) {
       temp_indicator <- indicator_id()
