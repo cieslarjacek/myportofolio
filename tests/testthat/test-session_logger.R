@@ -135,7 +135,7 @@ test_that("log_session_event() logs a correct message", {
   test_session <- make_test_session()
 
   test_msgs <- testthat::capture_messages(
-    test_logger$log_session_event("START", test_session)
+    test_logger$log_session_event(test_session, "START")
   )
 
   expect_true(any(grepl("SESSION START", test_msgs, fixed = TRUE)))
@@ -149,7 +149,7 @@ test_that("log_session_event() falls back to NA for 'visit_id'", {
   test_session <- make_test_session(cookie = "other=1")
 
   test_msgs <- testthat::capture_messages(
-    test_logger$log_session_event("START", test_session)
+    test_logger$log_session_event(test_session, "START")
   )
 
   expect_true(any(grepl("visit_id=NA", test_msgs, fixed = TRUE)))

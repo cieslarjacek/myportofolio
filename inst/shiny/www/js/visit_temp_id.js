@@ -14,6 +14,6 @@
       ? crypto.randomUUID()
       : Date.now() + '-' + Math.random().toString(36).slice(2)
     document.cookie =
-      'visit_id=' + id + '; path=/; max-age=86400; SameSite=Lax'
+      'visit_id=' + id + '; path=/; SameSite=Lax'
   }
 })()

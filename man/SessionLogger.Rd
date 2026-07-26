@@ -97,15 +97,15 @@ Reads and writes relevant log file to the target storage bucket.
 \subsection{Method \code{log_session_event()}}{
 Writes a uniform session event line to the log.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SessionLogger$log_session_event(event_name, session)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SessionLogger$log_session_event(session, event_name)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
-\item{\code{event_name}}{A character string with the relevant event name.}
-
 \item{\code{session}}{A Shiny session object.}
+
+\item{\code{event_name}}{A character string with the relevant event name.}
 }
 \if{html}{\out{</div>}}
 }
