@@ -84,9 +84,9 @@ SessionLogger <- R6::R6Class(
     #' @description
     #' Writes a uniform session event line to the log.
     #'
-    #' @param event_name A character string with the relevant event name.
     #' @param session A Shiny session object.
-    log_session_event = function(event_name, session) {
+    #' @param event_name A character string with the relevant event name.
+    log_session_event = function(session, event_name) {
       message(sprintf(
         "[%s] SESSION %s | path=%s | visit_id=%s | session_token=%s",
         format(Sys.time(), tz = "Europe/Madrid", format = "%Y-%m-%d %H:%M:%S"),
@@ -108,7 +108,7 @@ SessionLogger <- R6::R6Class(
         check_cookie_value()
       private$.current_session_token[[visit_id]] <- session$token
 
-      self$log_session_event("START", session)
+      self$log_session_event(session, "START")
     },
     #' @description
     #' Logs a session end event with timestamp, `PATH_INFO`, `visit_id`
@@ -116,7 +116,7 @@ SessionLogger <- R6::R6Class(
     #'
     #' @param session A Shiny session object.
     log_session_end = function(session) {
-      self$log_session_event("END", session)
+      self$log_session_event(session, "END")
     }
   ),
   active = make_active_field_wrapper(
