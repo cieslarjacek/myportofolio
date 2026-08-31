@@ -110,9 +110,9 @@ SessionLogger <- R6::R6Class(
     #' @description
     #' Writes a uniform session event line to the log.
     #'
-    #' @param event_name A character string with the relevant event name.
     #' @param session A Shiny session object.
-    log_session_event = function(event_name, session) {
+    #' @param event_name A character string with the relevant event name.
+    log_session_event = function(session, event_name) {
       message(sprintf(
         "[%s] %s | path=%s | visit_id=%s | session_token=%s",
         format(Sys.time(), tz = "Europe/Madrid", format = "%Y-%m-%d %H:%M:%S"),
