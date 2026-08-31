@@ -131,7 +131,7 @@ SessionLogger <- R6::R6Class(
     #' @param session A Shiny session object.
     init_session = function(session) {
       self$set_session_token(session)
-      self$log_session_event("SESSION START", session)
+      self$log_session_event(session, "SESSION START")
     },
     #' @description
     #' Terminates users session:
@@ -148,12 +148,12 @@ SessionLogger <- R6::R6Class(
       current_token <- self$get_session_token(session)
 
       if (!is_empty(current_token) && current_token == session$token) {
-        self$log_session_event("SESSION END", session)
+        self$log_session_event(session, "SESSION END")
         if (!as.logical(Sys.getenv("LOCAL_RUN"))) {
           self$put(con_details)
         }
       } else {
-        self$log_session_event("UNKNOWN TOKEN", session)
+        self$log_session_event(session, "UNKNOWN TOKEN")
       }
     }
   ),

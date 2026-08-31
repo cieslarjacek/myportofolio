@@ -134,8 +134,8 @@ test_that("log_session_event() logs a correct message", {
   test_logger <- SessionLogger$new()
   test_session <- make_test_session()
 
-  test_msgs <- testthat::capture_messages(
-    test_logger$log_session_event("SESSION START", test_session)
+  test_msgs <- capture_messages(
+    test_logger$log_session_event(test_session, "SESSION START")
   )
 
   expect_true(any(grepl("SESSION START", test_msgs, fixed = TRUE)))
@@ -150,8 +150,8 @@ test_that(
     test_logger <- SessionLogger$new()
     test_session <- make_test_session(cookie = "other=1")
 
-    test_msgs <- testthat::capture_messages(
-      test_logger$log_session_event("START", test_session)
+    test_msgs <- capture_messages(
+      test_logger$log_session_event(test_session, "SESSION START")
     )
 
     expect_true(any(grepl("visit_id=unknown", test_msgs, fixed = TRUE)))
@@ -326,7 +326,7 @@ test_that("terminate_session() does nothing when the token is stale", {
   capture_messages(test_logger$init_session(old_session))
   capture_messages(test_logger$init_session(new_session))
 
-  test_msgs <- testthat::capture_messages(
+  test_msgs <- capture_messages(
     test_logger$terminate_session(old_session, con_details = NULL)
   )
 
@@ -344,7 +344,7 @@ test_that(
     )
 
 
-    test_msgs <- testthat::capture_messages(
+    test_msgs <- capture_messages(
       test_logger$terminate_session(test_session, con_details = NULL)
     )
 
@@ -446,7 +446,7 @@ test_that("terminate_session() errors when LOCAL_RUN is unset", {
     cookie = "visit_id=visitorA", token = "tokA"
   )
 
-  testthat::capture_messages(test_logger$init_session(test_session))
+  capture_messages(test_logger$init_session(test_session))
 
   expect_error(
     suppressMessages(
