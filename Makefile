@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+.SHELLFLAGS := -o pipefail -c
 
 # GENERAL SETUP
 # Always make sure that the correct environment is set up.
