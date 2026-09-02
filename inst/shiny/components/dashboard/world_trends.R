@@ -14,7 +14,7 @@ for (obj_name in names(reactivevals_manager$init_objects)) {
 # Update and reset reactive values after indicator selection.
 shiny::observeEvent(indicator_id(),
   {
-    if (is_empty(indicator_id())) {
+    if (myportfolio::is_empty(indicator_id())) {
       table_aggregation_params(
         reactivevals_manager$reset("table_aggregation_params")
       )
@@ -42,9 +42,8 @@ shiny::observeEvent(indicator_id(),
 
     session$sendCustomMessage("toggleTrendChartExportBtn", FALSE)
 
-    # adssad
     sql_db_schema(reactivevals_manager$reset("sql_db_schema"))
-    if (!is_empty(indicator_id())) {
+    if (!myportfolio::is_empty(indicator_id())) {
       temp_indicator <- indicator_id()
       session$onFlushed(
         function() {

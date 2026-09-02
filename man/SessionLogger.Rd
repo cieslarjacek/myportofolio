@@ -22,8 +22,8 @@ and when to write logs to MinIO storage.
 
 \item{\code{log_file_con}}{A connection to the log file.}
 
-\item{\code{current_session_token}}{A currently active session token for the given
-visit ID.}
+\item{\code{current_session_token}}{A named list of currently active session tokens
+for the given visit ID.}
 }
 \if{html}{\out{</div>}}
 }
@@ -34,9 +34,12 @@ visit ID.}
 \item \href{#method-SessionLogger-start}{\code{SessionLogger$start()}}
 \item \href{#method-SessionLogger-stop}{\code{SessionLogger$stop()}}
 \item \href{#method-SessionLogger-put}{\code{SessionLogger$put()}}
+\item \href{#method-SessionLogger-get_visit_id}{\code{SessionLogger$get_visit_id()}}
+\item \href{#method-SessionLogger-set_session_token}{\code{SessionLogger$set_session_token()}}
+\item \href{#method-SessionLogger-get_session_token}{\code{SessionLogger$get_session_token()}}
 \item \href{#method-SessionLogger-log_session_event}{\code{SessionLogger$log_session_event()}}
-\item \href{#method-SessionLogger-log_session_start}{\code{SessionLogger$log_session_start()}}
-\item \href{#method-SessionLogger-log_session_end}{\code{SessionLogger$log_session_end()}}
+\item \href{#method-SessionLogger-init_session}{\code{SessionLogger$init_session()}}
+\item \href{#method-SessionLogger-terminate_session}{\code{SessionLogger$terminate_session()}}
 \item \href{#method-SessionLogger-clone}{\code{SessionLogger$clone()}}
 }
 }
@@ -92,6 +95,61 @@ Reads and writes relevant log file to the target storage bucket.
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SessionLogger-get_visit_id"></a>}}
+\if{latex}{\out{\hypertarget{method-SessionLogger-get_visit_id}{}}}
+\subsection{Method \code{get_visit_id()}}{
+Returns the value of \code{visit_id} cookie.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SessionLogger$get_visit_id(session)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{session}}{A Shiny session object.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SessionLogger-set_session_token"></a>}}
+\if{latex}{\out{\hypertarget{method-SessionLogger-set_session_token}{}}}
+\subsection{Method \code{set_session_token()}}{
+Register the currently active session token for a given \code{visit_id}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SessionLogger$set_session_token(session)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{session}}{A Shiny session object.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SessionLogger-get_session_token"></a>}}
+\if{latex}{\out{\hypertarget{method-SessionLogger-get_session_token}{}}}
+\subsection{Method \code{get_session_token()}}{
+Returns the currently active session token registered for a given
+\code{visit_id}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SessionLogger$get_session_token(session)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{session}}{A Shiny session object.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+A single session token string or \code{NULL} if not found.
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SessionLogger-log_session_event"></a>}}
 \if{latex}{\out{\hypertarget{method-SessionLogger-log_session_event}{}}}
 \subsection{Method \code{log_session_event()}}{
@@ -111,15 +169,17 @@ Writes a uniform session event line to the log.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-SessionLogger-log_session_start"></a>}}
-\if{latex}{\out{\hypertarget{method-SessionLogger-log_session_start}{}}}
-\subsection{Method \code{log_session_start()}}{
-Logs a session start event with timestamp, \code{PATH_INFO}, \code{visit_id}
+\if{html}{\out{<a id="method-SessionLogger-init_session"></a>}}
+\if{latex}{\out{\hypertarget{method-SessionLogger-init_session}{}}}
+\subsection{Method \code{init_session()}}{
+Initializes user session:
+\enumerate{
+\item Register the currently active session token for a given \code{visit_id}.
+\item Log a session start event with timestamp, \code{PATH_INFO}, \code{visit_id}
 cookie value and session token.
-Registers this session as the currently active sub-session for its
-\code{visit_id}.
+}
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SessionLogger$log_session_start(session)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SessionLogger$init_session(session)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -131,19 +191,28 @@ Registers this session as the currently active sub-session for its
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-SessionLogger-log_session_end"></a>}}
-\if{latex}{\out{\hypertarget{method-SessionLogger-log_session_end}{}}}
-\subsection{Method \code{log_session_end()}}{
-Logs a session end event with timestamp, \code{PATH_INFO}, \code{visit_id}
-cookie value and session token.
+\if{html}{\out{<a id="method-SessionLogger-terminate_session"></a>}}
+\if{latex}{\out{\hypertarget{method-SessionLogger-terminate_session}{}}}
+\subsection{Method \code{terminate_session()}}{
+Terminates users session:
+\enumerate{
+\item Grab the currently active session token registered for a given
+\code{visit_id}.
+\item If it's correct log a session end event with timestamp, \code{PATH_INFO},
+\code{visit_id} cookie value and session token.
+\item Write the log file to the storage.
+}
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SessionLogger$log_session_end(session)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SessionLogger$terminate_session(session, con_details)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{session}}{A Shiny session object.}
+
+\item{\code{con_details}}{A connection details for the storage. Please check
+\code{put} method in \link{SessionLogger} for more details.}
 }
 \if{html}{\out{</div>}}
 }

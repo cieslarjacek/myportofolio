@@ -14,8 +14,8 @@ NULL
 #' @field log_file_name A log file name in "%Y%m%d_%H%M%S.log" format.
 #' @field log_file_path A path to the log file.
 #' @field log_file_con A connection to the log file.
-#' @field current_session_token A currently active session token for the given
-#'    visit ID.
+#' @field current_session_token A named list of currently active session tokens
+#'    for the given visit ID.
 #'
 #' @export
 SessionLogger <- R6::R6Class(
@@ -31,7 +31,7 @@ SessionLogger <- R6::R6Class(
     .log_file_path = NULL,
     # A connection to the log file.
     .log_file_con = NULL,
-    # A currently active session token for the given visit ID.
+    # A named list of currently active session tokens for the given visit ID.
     .current_session_token = NULL
   ),
   public = list(
@@ -82,41 +82,79 @@ SessionLogger <- R6::R6Class(
       )
     },
     #' @description
+    #' Returns the value of `visit_id` cookie.
+    #'
+    #' @param session A Shiny session object.
+    get_visit_id = function(session) {
+      get_cookie_value(session$request$HTTP_COOKIE, "visit_id") %>%
+        check_cookie_value()
+    },
+    #' @description
+    #' Register the currently active session token for a given `visit_id`.
+    #'
+    #' @param session A Shiny session object.
+    set_session_token = function(session) {
+      visit_id <- self$get_visit_id(session)
+      private$.current_session_token[[visit_id]] <- session$token
+    },
+    #' @description
+    #' Returns the currently active session token registered for a given
+    #'   `visit_id`.
+    #'
+    #' @param session A Shiny session object.
+    #' @return A single session token string or `NULL` if not found.
+    get_session_token = function(session) {
+      visit_id <- self$get_visit_id(session)
+      private$.current_session_token[[visit_id]]
+    },
+    #' @description
     #' Writes a uniform session event line to the log.
     #'
     #' @param session A Shiny session object.
     #' @param event_name A character string with the relevant event name.
     log_session_event = function(session, event_name) {
       message(sprintf(
-        "[%s] SESSION %s | path=%s | visit_id=%s | session_token=%s",
+        "[%s] %s | path=%s | visit_id=%s | session_token=%s",
         format(Sys.time(), tz = "Europe/Madrid", format = "%Y-%m-%d %H:%M:%S"),
         event_name,
         shiny::isolate(session$clientData$url_pathname),
-        get_cookie_value(session$request$HTTP_COOKIE, "visit_id"),
+        self$get_visit_id(session),
         session$token
       ))
     },
     #' @description
-    #' Logs a session start event with timestamp, `PATH_INFO`, `visit_id`
+    #' Initializes user session:
+    #' 1. Register the currently active session token for a given `visit_id`.
+    #' 2. Log a session start event with timestamp, `PATH_INFO`, `visit_id`
     #' cookie value and session token.
-    #' Registers this session as the currently active sub-session for its
-    #' `visit_id`.
     #'
     #' @param session A Shiny session object.
-    log_session_start = function(session) {
-      visit_id <- get_cookie_value(session$request$HTTP_COOKIE, "visit_id") %>%
-        check_cookie_value()
-      private$.current_session_token[[visit_id]] <- session$token
-
-      self$log_session_event(session, "START")
+    init_session = function(session) {
+      self$set_session_token(session)
+      self$log_session_event(session, "SESSION START")
     },
     #' @description
-    #' Logs a session end event with timestamp, `PATH_INFO`, `visit_id`
-    #' cookie value and session token.
+    #' Terminates users session:
+    #' 1. Grab the currently active session token registered for a given
+    #' `visit_id`.
+    #' 2. If it's correct log a session end event with timestamp, `PATH_INFO`,
+    #' `visit_id` cookie value and session token.
+    #' 3. Write the log file to the storage.
     #'
     #' @param session A Shiny session object.
-    log_session_end = function(session) {
-      self$log_session_event(session, "END")
+    #' @param con_details A connection details for the storage. Please check
+    #'   `put` method in [myportfolio::SessionLogger] for more details.
+    terminate_session = function(session, con_details) {
+      current_token <- self$get_session_token(session)
+
+      if (!is_empty(current_token) && current_token == session$token) {
+        self$log_session_event(session, "SESSION END")
+        if (!as.logical(Sys.getenv("LOCAL_RUN"))) {
+          self$put(con_details)
+        }
+      } else {
+        self$log_session_event(session, "UNKNOWN TOKEN")
+      }
     }
   ),
   active = make_active_field_wrapper(

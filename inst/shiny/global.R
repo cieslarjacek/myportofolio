@@ -1,4 +1,4 @@
-# Setup the logger.
+# Start the logger.
 app_logger <- myportfolio::SessionLogger$new()
 app_logger$start()
 

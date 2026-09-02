@@ -134,8 +134,8 @@ test_that("log_session_event() logs a correct message", {
   test_logger <- SessionLogger$new()
   test_session <- make_test_session()
 
-  test_msgs <- testthat::capture_messages(
-    test_logger$log_session_event(test_session, "START")
+  test_msgs <- capture_messages(
+    test_logger$log_session_event(test_session, "SESSION START")
   )
 
   expect_true(any(grepl("SESSION START", test_msgs, fixed = TRUE)))
@@ -144,48 +144,66 @@ test_that("log_session_event() logs a correct message", {
   expect_true(any(grepl("session_token=tok_xyz", test_msgs, fixed = TRUE)))
 })
 
-test_that("log_session_event() falls back to NA for 'visit_id'", {
+test_that(
+  "log_session_event() falls back to 'unknown' for a missing 'visit_id'",
+  {
+    test_logger <- SessionLogger$new()
+    test_session <- make_test_session(cookie = "other=1")
+
+    test_msgs <- capture_messages(
+      test_logger$log_session_event(test_session, "SESSION START")
+    )
+
+    expect_true(any(grepl("visit_id=unknown", test_msgs, fixed = TRUE)))
+  }
+)
+
+test_that("get_visit_id() returns 'visit_id' cookie value", {
+  test_logger <- SessionLogger$new()
+  test_session <- make_test_session(cookie = "visit_id=abc123")
+
+  expect_equal(test_logger$get_visit_id(test_session), "abc123")
+})
+
+test_that("get_visit_id() returns 'unknown' when 'visit_id' cookie is absent", {
   test_logger <- SessionLogger$new()
   test_session <- make_test_session(cookie = "other=1")
 
-  test_msgs <- testthat::capture_messages(
-    test_logger$log_session_event(test_session, "START")
-  )
+  expect_equal(test_logger$get_visit_id(test_session), "unknown")
+})
 
-  expect_true(any(grepl("visit_id=NA", test_msgs, fixed = TRUE)))
+test_that("get_visit_id() returns 'unknown' when there is no cookie header", {
+  test_logger <- SessionLogger$new()
+  test_session <- make_test_session(cookie = NULL)
+
+  expect_equal(test_logger$get_visit_id(test_session), "unknown")
 })
 
 test_that(
-  "log_session_start() logs a START event and registers the session token",
+  "set_session_token() registers the token under 'visit_id' cookie value",
   {
     test_logger <- SessionLogger$new()
     test_session <- make_test_session(
       cookie = "visit_id=visitor42", token = "tok1"
     )
 
-    test_msgs <- testthat::capture_messages(
-      test_logger$log_session_start(test_session)
-    )
+    test_logger$set_session_token(test_session)
 
     expect_equal(test_logger$current_session_token[["visitor42"]], "tok1")
-    expect_true(any(grepl("SESSION START", test_msgs, fixed = TRUE)))
   }
 )
 
-test_that(
-  "log_session_start() registers 'unknown' token when the 'visit_id' is absent",
-  {
-    test_logger <- SessionLogger$new()
-    test_session <- make_test_session(cookie = "other=1", token = "tok2")
+test_that("set_session_token() registers the token under 'unknown' value", {
+  test_logger <- SessionLogger$new()
+  test_session <- make_test_session(cookie = "other=1", token = "tok2")
 
-    testthat::capture_messages(test_logger$log_session_start(test_session))
+  test_logger$set_session_token(test_session)
 
-    expect_equal(test_logger$current_session_token[["unknown"]], "tok2")
-  }
-)
+  expect_equal(test_logger$current_session_token[["unknown"]], "tok2")
+})
 
 test_that(
-  "log_session_start() overwrites the token for a repeated 'visit_id'",
+  "set_session_token() overwrites the token for a repeated 'visit_id'",
   {
     test_logger <- SessionLogger$new()
     first_session <- make_test_session(
@@ -195,51 +213,245 @@ test_that(
       cookie = "visit_id=visitorA", token = "tok_new"
     )
 
-    testthat::capture_messages(test_logger$log_session_start(first_session))
-    testthat::capture_messages(test_logger$log_session_start(second_session))
+    test_logger$set_session_token(first_session)
+    test_logger$set_session_token(second_session)
 
     expect_equal(test_logger$current_session_token[["visitorA"]], "tok_new")
   }
 )
 
 test_that(
-  "log_session_start() tracks separate tokens for separate 'visit_id'",
+  "set_session_token() tracks separate tokens for separate 'visit_id'",
   {
     test_logger <- SessionLogger$new()
     session_a <- make_test_session(cookie = "visit_id=visitorA", token = "tokA")
     session_b <- make_test_session(cookie = "visit_id=visitorB", token = "tokB")
 
-    testthat::capture_messages(test_logger$log_session_start(session_a))
-    testthat::capture_messages(test_logger$log_session_start(session_b))
+    test_logger$set_session_token(session_a)
+    test_logger$set_session_token(session_b)
 
     expect_equal(test_logger$current_session_token[["visitorA"]], "tokA")
     expect_equal(test_logger$current_session_token[["visitorB"]], "tokB")
   }
 )
 
-test_that("log_session_end() logs an END event", {
+test_that(
+  "get_session_token() returns the token previously set for that 'visit_id'",
+  {
+    test_logger <- SessionLogger$new()
+    test_session <- make_test_session(
+      cookie = "visit_id=visitor42", token = "tok1"
+    )
+
+    test_logger$set_session_token(test_session)
+
+    expect_equal(test_logger$get_session_token(test_session), "tok1")
+  }
+)
+
+test_that("get_session_token() returns NULL when no token was registered", {
   test_logger <- SessionLogger$new()
-  test_session <- make_test_session()
+  test_session <- make_test_session(cookie = "visit_id=never_registered")
 
-  test_msgs <- testthat::capture_messages(
-    test_logger$log_session_end(test_session)
-  )
-
-  expect_true(any(grepl("SESSION END", test_msgs, fixed = TRUE)))
+  expect_null(test_logger$get_session_token(test_session))
 })
 
-test_that("log_session_end() does not modify 'current_session_token'", {
+test_that("init_session() registers the session token and logs a START event", {
   test_logger <- SessionLogger$new()
-  start_session <- make_test_session(
-    cookie = "visit_id=visitorA", token = "tokA"
-  )
-  end_session <- make_test_session(
+  test_session <- make_test_session(
     cookie = "visit_id=visitorA", token = "tokA"
   )
 
-  testthat::capture_messages(test_logger$log_session_start(start_session))
-  testthat::capture_messages(test_logger$log_session_end(end_session))
+  test_msgs <- capture_messages(test_logger$init_session(test_session))
 
   expect_equal(test_logger$current_session_token[["visitorA"]], "tokA")
-  expect_length(test_logger$current_session_token, 1)
+  expect_true(any(grepl("SESSION START", test_msgs, fixed = TRUE)))
+})
+
+test_that(
+  "init_session() registers under 'unknown' when 'visit_id' cookie is absent",
+  {
+    test_logger <- SessionLogger$new()
+    test_session <- make_test_session(cookie = "other=1", token = "tok2")
+
+    capture_messages(test_logger$init_session(test_session))
+
+    expect_equal(test_logger$current_session_token[["unknown"]], "tok2")
+  }
+)
+
+test_that("init_session() overwrites the token for the same 'visit_id'", {
+  test_logger <- SessionLogger$new()
+  first_session <- make_test_session(
+    cookie = "visit_id=visitorA", token = "tok_old"
+  )
+  second_session <- make_test_session(
+    cookie = "visit_id=visitorA", token = "tok_new"
+  )
+
+  capture_messages(test_logger$init_session(first_session))
+  capture_messages(test_logger$init_session(second_session))
+
+  expect_equal(test_logger$current_session_token[["visitorA"]], "tok_new")
+})
+
+test_that(
+  "terminate_session() logs an END event when the token is the registered one",
+  {
+    withr::local_envvar(LOCAL_RUN = "TRUE")
+    test_logger <- SessionLogger$new()
+    test_session <- make_test_session(
+      cookie = "visit_id=visitorA", token = "tokA"
+    )
+
+    capture_messages(test_logger$init_session(test_session))
+    test_msgs <- capture_messages(
+      test_logger$terminate_session(test_session, con_details = NULL)
+    )
+
+    expect_true(any(grepl("SESSION END", test_msgs, fixed = TRUE)))
+  }
+)
+
+test_that("terminate_session() does nothing when the token is stale", {
+  withr::local_envvar(LOCAL_RUN = "TRUE")
+  test_logger <- SessionLogger$new()
+  old_session <- make_test_session(
+    cookie = "visit_id=visitorA", token = "tok_old"
+  )
+  new_session <- make_test_session(
+    cookie = "visit_id=visitorA", token = "tok_new"
+  )
+
+  capture_messages(test_logger$init_session(old_session))
+  capture_messages(test_logger$init_session(new_session))
+
+  test_msgs <- capture_messages(
+    test_logger$terminate_session(old_session, con_details = NULL)
+  )
+
+  expect_false(any(grepl("SESSION END", test_msgs, fixed = TRUE)))
+  expect_true(any(grepl("UNKNOWN TOKEN", test_msgs, fixed = TRUE)))
+})
+
+test_that(
+  "terminate_session() does nothing when no token was ever registered",
+  {
+    withr::local_envvar(LOCAL_RUN = "TRUE")
+    test_logger <- SessionLogger$new()
+    test_session <- make_test_session(
+      cookie = "visit_id=never_registered", token = "tokA"
+    )
+
+
+    test_msgs <- capture_messages(
+      test_logger$terminate_session(test_session, con_details = NULL)
+    )
+
+    expect_false(any(grepl("SESSION END", test_msgs, fixed = TRUE)))
+    expect_true(any(grepl("UNKNOWN TOKEN", test_msgs, fixed = TRUE)))
+  }
+)
+
+test_that("terminate_session() skips put() when LOCAL_RUN is TRUE", {
+  withr::local_envvar(LOCAL_RUN = "TRUE")
+  put_called <- FALSE
+  local_mocked_bindings(
+    s3write_using = function(...) {
+      put_called <<- TRUE
+    },
+    .package = "aws.s3"
+  )
+
+  test_logger <- SessionLogger$new()
+  test_session <- make_test_session(
+    cookie = "visit_id=visitorA", token = "tokA"
+  )
+
+  capture_messages(test_logger$init_session(test_session))
+  capture_messages(
+    test_logger$terminate_session(test_session, con_details = NULL)
+  )
+
+  expect_false(put_called)
+})
+
+test_that(
+  "terminate_session() calls put() with 'con_details' when LOCAL_RUN is FALSE",
+  {
+    withr::local_tempdir() %>% setwd()
+    withr::local_envvar(LOCAL_RUN = "FALSE")
+
+    captured_log <- NULL
+    local_mocked_bindings(
+      s3write_using = function(x, FUN, object, bucket, opts) {
+        captured_log <<- list(object = object, bucket = bucket)
+      },
+      .package = "aws.s3"
+    )
+
+    test_logger <- SessionLogger$new()
+    test_logger$start()
+    test_logger$stop()
+
+    test_session <- make_test_session(
+      cookie = "visit_id=visitorA", token = "tokA"
+    )
+    test_storage_con <- list(
+      bucket = "test-bucket", key = "ak", secret = "sk",
+      region = "", base_url = "minio.test", use_https = FALSE
+    )
+
+    capture_messages(test_logger$init_session(test_session))
+    capture_messages(
+      test_logger$terminate_session(test_session, test_storage_con)
+    )
+
+    expect_equal(captured_log$bucket, "test-bucket")
+    expect_equal(captured_log$object, test_logger$log_file_path)
+  }
+)
+
+test_that("terminate_session() does not call put() for a stale token", {
+  withr::local_envvar(LOCAL_RUN = "FALSE")
+  put_called <- FALSE
+  local_mocked_bindings(
+    s3write_using = function(...) {
+      put_called <<- TRUE
+    },
+    .package = "aws.s3"
+  )
+
+  test_logger <- SessionLogger$new()
+  old_session <- make_test_session(
+    cookie = "visit_id=visitorA", token = "tok_old"
+  )
+  new_session <- make_test_session(
+    cookie = "visit_id=visitorA", token = "tok_new"
+  )
+
+  capture_messages(test_logger$init_session(old_session))
+  capture_messages(test_logger$init_session(new_session))
+  capture_messages(
+    test_logger$terminate_session(old_session, con_details = NULL)
+  )
+
+  expect_false(put_called)
+})
+
+test_that("terminate_session() errors when LOCAL_RUN is unset", {
+  withr::local_envvar(LOCAL_RUN = NA)
+  test_logger <- SessionLogger$new()
+  test_session <- make_test_session(
+    cookie = "visit_id=visitorA", token = "tokA"
+  )
+
+  capture_messages(test_logger$init_session(test_session))
+
+  expect_error(
+    suppressMessages(
+      test_logger$terminate_session(test_session, con_details = NULL)
+    ),
+    regexp = "missing value where TRUE/FALSE needed"
+  )
 })
