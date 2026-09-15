@@ -1,6 +1,6 @@
 Package: myportfolio
 Title: My Portfolio App
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: 
     person("Jacek", "Cieslar", , "contact@jacekdev.com", role = c("aut", "cre"))
 Description: Functions and classes to make the app run easier.

@@ -25,15 +25,13 @@ on:
         type: string
         default: ""
     secrets:
-      SERVER_SSH_KNOWN_HOSTS:
-        required: true
       SERVER_HOST:
         required: true
       SERVER_USER:
         required: true
       SERVER_SSH_KEY:
         required: true
-      VAULT_TOKEN:
+      SERVER_SSH_FINGERPRINT:
         required: true
 
 env:
@@ -44,15 +42,15 @@ jobs:
   deploy:
     name: Deploy to ${{ inputs.environment }}
     runs-on: ubuntu-latest
+    # packages: write is needed only by the PROD retag-and-push path; the rest
+    # of the job reads. contents: read is the floor for the checkout-less job.
+    permissions:
+      contents: read
+      packages: write
     environment:
       name: ${{ inputs.environment }}
       url: ${{ inputs.app_url }}
     steps:
-      - name: Add server to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
-
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -97,7 +95,15 @@ jobs:
           docker tag  ${SOURCE} ${TARGET}
           docker push ${TARGET}
 
-      # All environments - deploy to server via SSH
+      # All environments - trigger the deploy on the server.
+      #
+      # The deploy key is pinned to a forced command on the server
+      # (/usr/local/sbin/deploy-app), which parses this string verbatim from
+      # SSH_ORIGINAL_COMMAND and accepts only "deploy <env> <version>".
+      #
+      # IMPORTANT: keep `script` to ONE line and do NOT set script_stop. Both
+      # cause the action to prepend extra shell lines, which the forced command
+      # rejects as illegal input.
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -105,22 +111,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 2222
-          script: |
-            ENV_DIR=/opt/${{ inputs.app_name }}/${{ inputs.environment }}
-
-            # Append APP_VERSION, VAULT_ADDRESS and VAULT_TOKEN to existing .env file
-            sed -i '/^APP_VERSION=/d' ${ENV_DIR}/.env
-            sed -i '/^VAULT_ADDRESS=/d' ${ENV_DIR}/.env
-            sed -i '/^VAULT_TOKEN=/d' ${ENV_DIR}/.env
-            echo "APP_VERSION=${{ inputs.version }}" >> ${ENV_DIR}/.env
-            echo "VAULT_ADDRESS=${{ secrets.VAULT_ADDRESS }}" >> ${ENV_DIR}/.env
-            echo "VAULT_TOKEN=${{ secrets.VAULT_TOKEN }}" >> ${ENV_DIR}/.env
-
-            # Pull new image and restart via compose
-            docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_USER }}/${{ inputs.app_name }}-${{ inputs.environment }}:${{ inputs.version }}
-            cd ${ENV_DIR}
-            docker compose down
-            docker compose up -d
-
-            # Clean up old images
-            docker image prune -a --filter "until=168h" --force
+          # Host key pin. Without it the action skips host key verification;
+          # it does not read ~/.ssh/known_hosts.
+          fingerprint: ${{ secrets.SERVER_SSH_FINGERPRINT }}
+          script: deploy ${{ inputs.environment }} ${{ inputs.version }}

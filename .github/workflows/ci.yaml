@@ -12,6 +12,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
   cancel-in-progress: true
 
+# Least-privilege default for every job. Jobs that need more raise it locally:
+#   build / push  -> packages: write (GHCR image and buildx registry cache)
+#   cleanup       -> contents: write (deletes the merged branch)
+permissions:
+  contents: read
+
 # Pipeline logic:
 #   feature/* >>> develop       : full CI, version format X.X.X.XXXX, push as myportfolio-dev
 #   release/* >>> develop       : preflight only, no deploy
@@ -23,6 +29,8 @@ jobs:
   preflight:
     name: Pre-flight checks
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: |
       github.event.action != 'closed' &&
       (
@@ -65,6 +73,9 @@ jobs:
     name: Docker build
     needs: preflight
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     if: |
       (github.base_ref == 'develop' && startsWith(github.head_ref, 'feature/')) ||
       (startsWith(github.base_ref, 'release/') && (startsWith(github.head_ref, 'bugfix/') || startsWith(github.head_ref, 'hotfix/')))
@@ -169,6 +180,8 @@ jobs:
     name: Linting check
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -196,6 +209,8 @@ jobs:
     name: SAST check
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -223,6 +238,8 @@ jobs:
     name: Coverage check
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -250,6 +267,8 @@ jobs:
     name: Unit tests check
     needs: [linting, sast, coverage]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -277,6 +296,9 @@ jobs:
     name: Push image to GHCR
     needs: [build, unit-tests]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -311,6 +333,8 @@ jobs:
     name: Report
     needs: [unit-tests, push]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: always()
     steps:
       - name: Download all logs
@@ -335,6 +359,8 @@ jobs:
   cleanup:
     name: Delete merged branch
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: |
       github.event.action == 'closed' &&
       github.event.pull_request.merged == true &&
