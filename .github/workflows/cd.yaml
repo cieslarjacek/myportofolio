@@ -17,11 +17,20 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
+# Least-privilege default for every job in this workflow. Jobs that need more
+# (packages: write for GHCR) raise it locally; see cd-deploy.yaml.
+permissions:
+  contents: read
+
 # Pipeline logic:
 #   CI merges feature/* >>> develop        : auto-deploy to DEV
 #   CI merges bugfix/*  >>> release/X.X.X  : auto-deploy to TEST
 #   CI merges hotfix/*  >>> release/X.X.X  : auto-deploy to TEST
 #   Manual trigger                         : promote to TEST or PROD
+#
+# Vault token renewal is NOT part of this pipeline. The server renews its own
+# token daily via vault-renew-app-token.timer, so no Vault credential is held
+# in GitHub.
 
 jobs:
   # 0. Validate and extract version
@@ -60,17 +69,10 @@ jobs:
           echo "version=${VERSION}"   >> $GITHUB_OUTPUT
           echo "Version '${VERSION}' for '${APP_NAME}' is valid."
 
-  # 1. Renew Vault token
-  renew-vault-token:
-    name: Renew Vault token
-    needs: validate
-    uses: ./.github/workflows/cd-renew-vault-token.yaml
-    secrets: inherit
-
-  # 2. Deploy to DEV (auto on merge to develop)
+  # 1. Deploy to DEV (auto on merge to develop)
   deploy-dev:
     name: Deploy to DEV
-    needs: [validate, renew-vault-token]
+    needs: [validate]
     if: github.event_name == 'push' && github.ref_name == 'develop'
     uses: ./.github/workflows/cd-deploy.yaml
     secrets: inherit
@@ -80,10 +82,10 @@ jobs:
       app_name: ${{ needs.validate.outputs.app_name }}
       app_url: ${{ vars.APP_DEV_URL }}
 
-  # 3. Deploy to TEST (auto on merge to release/X.X.X, or manual)
+  # 2. Deploy to TEST (auto on merge to release/X.X.X, or manual)
   deploy-test:
     name: Deploy to TEST
-    needs: [validate, renew-vault-token]
+    needs: [validate]
     if: |
       (github.event_name == 'push' && startsWith(github.ref_name, 'release/')) ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'test')
@@ -95,10 +97,10 @@ jobs:
       app_name: ${{ needs.validate.outputs.app_name }}
       app_url: ${{ vars.APP_TEST_URL }}
 
-  # 4. Promote to PROD (manual only, retags from test)
+  # 3. Promote to PROD (manual only, retags from test)
   deploy-prod:
     name: Deploy to PROD
-    needs: [validate, renew-vault-token]
+    needs: [validate]
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod'
     uses: ./.github/workflows/cd-deploy.yaml
     secrets: inherit
