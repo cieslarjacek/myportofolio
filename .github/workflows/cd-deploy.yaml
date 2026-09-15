@@ -42,6 +42,9 @@ jobs:
   deploy:
     name: Deploy to ${{ inputs.environment }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     environment:
       name: ${{ inputs.environment }}
       url: ${{ inputs.app_url }}
