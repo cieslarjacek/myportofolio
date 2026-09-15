@@ -98,10 +98,10 @@ jobs:
       # All environments - trigger the deploy on the server.
       #
       # The deploy key is pinned to a forced command on the server
-      # (/usr/local/sbin/deploy-app), which parses this string verbatim from
+      # ("/usr/local/sbin/deploy-app"), which parses this string verbatim from
       # SSH_ORIGINAL_COMMAND and accepts only "deploy <env> <version>".
       #
-      # IMPORTANT: keep `script` to ONE line and do NOT set script_stop. Both
+      # IMPORTANT: keep `script` to ONE line and do NOT set `script_stop`. Both
       # cause the action to prepend extra shell lines, which the forced command
       # rejects as illegal input.
       - name: Deploy to server via SSH
@@ -112,6 +112,6 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 2222
           # Host key pin. Without it the action skips host key verification;
-          # it does not read ~/.ssh/known_hosts.
+          # it does not read "~/.ssh/known_hosts".
           fingerprint: ${{ secrets.SERVER_SSH_FINGERPRINT }}
           script: deploy ${{ inputs.environment }} ${{ inputs.version }}

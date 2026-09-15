@@ -17,8 +17,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
-# Least-privilege default for every job in this workflow. Jobs that need more
-# (packages: write for GHCR) raise it locally; see cd-deploy.yaml.
+# Workflow-level default. Every scope not named here becomes "none", so each
+# job that calls "cd-deploy.yaml" must grant the scopes that job needs.
 permissions:
   contents: read
 
@@ -37,6 +37,8 @@ jobs:
   validate:
     name: Validate version
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       version: ${{ steps.vars.outputs.version }}
       app_name: ${{ steps.vars.outputs.app_name }}
@@ -74,6 +76,9 @@ jobs:
     name: Deploy to DEV
     needs: [validate]
     if: github.event_name == 'push' && github.ref_name == 'develop'
+    permissions:
+      contents: read
+      packages: read
     uses: ./.github/workflows/cd-deploy.yaml
     secrets: inherit
     with:
@@ -89,6 +94,9 @@ jobs:
     if: |
       (github.event_name == 'push' && startsWith(github.ref_name, 'release/')) ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'test')
+    permissions:
+      contents: read
+      packages: read
     uses: ./.github/workflows/cd-deploy.yaml
     secrets: inherit
     with:
@@ -102,6 +110,9 @@ jobs:
     name: Deploy to PROD
     needs: [validate]
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod'
+    permissions:
+      contents: read
+      packages: write
     uses: ./.github/workflows/cd-deploy.yaml
     secrets: inherit
     with:
