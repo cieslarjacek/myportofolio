@@ -42,8 +42,6 @@ jobs:
   deploy:
     name: Deploy to ${{ inputs.environment }}
     runs-on: ubuntu-latest
-    # packages: write is needed only by the PROD retag-and-push path; the rest
-    # of the job reads. contents: read is the floor for the checkout-less job.
     permissions:
       contents: read
       packages: write
