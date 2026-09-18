@@ -100,6 +100,7 @@ run-r:
 	$(DOCKER_COMMAND) compose --profile ci run --rm ci R --no-save --no-restore
 
 MINIO_SSH_TUNNEL_PORT  = $(shell grep '^MINIO_SSH_TUNNEL_PORT=' $(ENV_FILE) | cut -d '=' -f2)
+DOCKER_TUNNEL_BIND = $(shell grep '^DOCKER_TUNNEL_BIND=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_USER = $(shell grep '^VAULT_SSH_USER=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_HOST = $(shell grep '^VAULT_SSH_HOST=' $(ENV_FILE) | cut -d '=' -f2)
 VAULT_SSH_PORT = $(shell grep '^VAULT_SSH_PORT=' $(ENV_FILE) | cut -d '=' -f2)
@@ -109,11 +110,11 @@ ssh-tunnel-open:
 	@echo "Opening SSH tunnel to Vault and MinIO..."
 	@ssh -f -N \
 		-p $(VAULT_SSH_PORT) \
-		-L 0.0.0.0:$(VAULT_SSH_TUNNEL_PORT):localhost:$(VAULT_SSH_TUNNEL_PORT) \
-		-L 0.0.0.0:$(MINIO_SSH_TUNNEL_PORT):localhost:$(MINIO_SSH_TUNNEL_PORT) \
+		-L $(DOCKER_TUNNEL_BIND):$(VAULT_SSH_TUNNEL_PORT):localhost:$(VAULT_SSH_TUNNEL_PORT) \
+		-L $(DOCKER_TUNNEL_BIND):$(MINIO_SSH_TUNNEL_PORT):localhost:$(MINIO_SSH_TUNNEL_PORT) \
 		$(VAULT_SSH_USER)@$(VAULT_SSH_HOST) \
 		-o ExitOnForwardFailure=yes \
-		-o StrictHostKeyChecking=no
+		-o StrictHostKeyChecking=yes
 	@echo "Tunnel opened"
 
 ssh-tunnel-close:
@@ -138,12 +139,17 @@ ci-linting:
 		Rscript $(APP_MAIN_DIR)/ci/linting.R \
 		2>&1 | tee ci_linting.log
 
+# Refresh version and digest SHA with:
+#	docker run --rm aquasec/trivy:latest --version
+#   docker buildx imagetools inspect aquasec/trivy:<version> --format '{{.Manifest.Digest}}'
+TRIVY_IMAGE := aquasec/trivy:0.69.3@sha256:bcc376de8d77cfe086a917230e818dc9f8528e3c852f7b1aff648949b6258d1c
+
 ci-sast:
 	@echo "Running SAST check..." | tee ci_sast.log
 	@echo "Container image scan (Trivy)..." | tee -a ci_sast.log
-	docker run --rm \
+	$(DOCKER_COMMAND) run --rm \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		aquasec/trivy image \
+		$(TRIVY_IMAGE) image \
 		--exit-code 1 \
 		--severity HIGH,CRITICAL \
 		--ignore-unfixed \
