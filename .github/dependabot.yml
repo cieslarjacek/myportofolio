@@ -1,0 +1,20 @@
+# Pinning actions to commit SHAs stops silent upstream changes, but it also
+# freezes security fixes. Dependabot opens a PR when a pinned action publishes
+# a new release, rewriting the SHA and keeping the "# vX.Y.Z" comment in sync.
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    # Group the routine bumps into one PR.
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: "ci"
