@@ -44,7 +44,7 @@ export CI_IMAGE_NAME
 export ENV_FILE
 export IMAGE_NAME
 
-# DOCKER BUILD SETUP
+# DOCKER BUILD
 # Production image.
 docker-build:
 	@echo "Building Docker image $(IMAGE_NAME)..."
@@ -64,6 +64,7 @@ docker-build:
 		. \
 		2>&1 | tee $(BUILD_LOGFILE)
 
+# CI image.
 docker-build-ci:
 	@echo "Building CI Docker image $(CI_IMAGE_NAME)..."
 	@echo "Logs: $(BUILD_LOGFILE)"
@@ -89,44 +90,6 @@ docker-rebuild:
 		--load \
 		. \
 		2>&1 | tee $(REBUILD_LOGFILE)
-
-# DOCKER RUN
-.PHONY: run-bash run-r ssh-tunnel-open ssh-tunnel-close run-app 
-
-run-bash:
-	$(DOCKER_COMMAND) compose --profile ci run --rm ci /bin/bash
-
-run-r:
-	$(DOCKER_COMMAND) compose --profile ci run --rm ci R --no-save --no-restore
-
-MINIO_SSH_TUNNEL_PORT  = $(shell grep '^MINIO_SSH_TUNNEL_PORT=' $(ENV_FILE) | cut -d '=' -f2)
-DOCKER_TUNNEL_BIND = $(shell grep '^DOCKER_TUNNEL_BIND=' $(ENV_FILE) | cut -d '=' -f2)
-VAULT_SSH_USER = $(shell grep '^VAULT_SSH_USER=' $(ENV_FILE) | cut -d '=' -f2)
-VAULT_SSH_HOST = $(shell grep '^VAULT_SSH_HOST=' $(ENV_FILE) | cut -d '=' -f2)
-VAULT_SSH_PORT = $(shell grep '^VAULT_SSH_PORT=' $(ENV_FILE) | cut -d '=' -f2)
-VAULT_SSH_TUNNEL_PORT = $(shell grep '^VAULT_SSH_TUNNEL_PORT=' $(ENV_FILE) | cut -d '=' -f2)
-
-ssh-tunnel-open:
-	@echo "Opening SSH tunnel to Vault and MinIO..."
-	@ssh -f -N \
-		-p $(VAULT_SSH_PORT) \
-		-L $(DOCKER_TUNNEL_BIND):$(VAULT_SSH_TUNNEL_PORT):localhost:$(VAULT_SSH_TUNNEL_PORT) \
-		-L $(DOCKER_TUNNEL_BIND):$(MINIO_SSH_TUNNEL_PORT):localhost:$(MINIO_SSH_TUNNEL_PORT) \
-		$(VAULT_SSH_USER)@$(VAULT_SSH_HOST) \
-		-o ExitOnForwardFailure=yes \
-		-o StrictHostKeyChecking=yes
-	@echo "Tunnel opened"
-
-ssh-tunnel-close:
-	@echo "Closing SSH tunnel..."
-	@lsof -ti:$(VAULT_SSH_TUNNEL_PORT) -ti:$(MINIO_SSH_TUNNEL_PORT) | xargs -r kill
-	@echo "Tunnel closed"
-
-# IMPORTANT: Run only with "LOCAL_RUN=false" in ".env" file.
-# IMPORTANT: Remember to updated "VAULT_TOKEN" in ".env" file.
-run-app: ssh-tunnel-open
-	$(DOCKER_COMMAND) compose up shiny-app; \
-	$(MAKE) ssh-tunnel-close
 
 # LOCAL CI PIPELINE
 .PHONY: ci-all ci-only-checks
@@ -176,3 +139,60 @@ ci-unit-tests:
 # ci-integration-tests:
 # 	$(DOCKER_COMMAND) compose --profile ci run --rm ci \
 # 		Rscript -e "testthat::test_dir('tests/integration')"
+
+# DOCKER RUN
+.PHONY: run-bash run-r ssh-tunnel-open ssh-tunnel-close run-app 
+
+run-bash:
+	$(DOCKER_COMMAND) compose --profile ci run --rm ci /bin/bash
+
+run-r:
+	$(DOCKER_COMMAND) compose --profile ci run --rm ci R --no-save --no-restore
+
+MINIO_SSH_TUNNEL_PORT  = $(shell grep '^MINIO_SSH_TUNNEL_PORT=' $(ENV_FILE) | cut -d '=' -f2)
+DOCKER_TUNNEL_BIND = $(shell grep '^DOCKER_TUNNEL_BIND=' $(ENV_FILE) | cut -d '=' -f2)
+VAULT_SSH_USER = $(shell grep '^VAULT_SSH_USER=' $(ENV_FILE) | cut -d '=' -f2)
+VAULT_SSH_HOST = $(shell grep '^VAULT_SSH_HOST=' $(ENV_FILE) | cut -d '=' -f2)
+VAULT_SSH_PORT = $(shell grep '^VAULT_SSH_PORT=' $(ENV_FILE) | cut -d '=' -f2)
+VAULT_SSH_TUNNEL_PORT = $(shell grep '^VAULT_SSH_TUNNEL_PORT=' $(ENV_FILE) | cut -d '=' -f2)
+
+# Control socket for the tunnel. Lets "ssh-tunnel-close" terminate exactly the
+# connection "ssh-tunnel-open" created, instead of killing whatever process
+# happens to hold the port number.
+TUNNEL_CTL := $(HOME)/.ssh/myportfolio-tunnel.ctl
+
+# Forwards:
+#   172.17.0.1:8200, :9000 - docker0 gateway for "make run-app"
+#							 (container, LOCAL_RUN=false, config from tha vault).
+#   127.0.0.1:9000         - loopback for native RStudio runs
+#							 (local code, LOCAL_RUN=true, config from "dev.env").
+ssh-tunnel-open:
+	@if [ -S $(TUNNEL_CTL) ] && ssh -S $(TUNNEL_CTL) -O check $(VAULT_SSH_USER)@$(VAULT_SSH_HOST) 2>/dev/null; then \
+		echo "Tunnel already open"; exit 0; \
+	fi; \
+	rm -f $(TUNNEL_CTL); \
+	echo "Opening SSH tunnel to Vault and MinIO..."; \
+	ssh -f -N -M -S $(TUNNEL_CTL) \
+		-p $(VAULT_SSH_PORT) \
+		-L $(DOCKER_TUNNEL_BIND):$(VAULT_SSH_TUNNEL_PORT):localhost:$(VAULT_SSH_TUNNEL_PORT) \
+		-L $(DOCKER_TUNNEL_BIND):$(MINIO_SSH_TUNNEL_PORT):localhost:$(MINIO_SSH_TUNNEL_PORT) \
+		-L 127.0.0.1:$(MINIO_SSH_TUNNEL_PORT):localhost:$(MINIO_SSH_TUNNEL_PORT) \
+		$(VAULT_SSH_USER)@$(VAULT_SSH_HOST) \
+		-o ExitOnForwardFailure=yes \
+		-o StrictHostKeyChecking=yes && \
+	echo "Tunnel opened"
+
+ssh-tunnel-close:
+	@if [ -S $(TUNNEL_CTL) ]; then \
+		ssh -S $(TUNNEL_CTL) -O exit $(VAULT_SSH_USER)@$(VAULT_SSH_HOST) 2>/dev/null; \
+		rm -f $(TUNNEL_CTL); \
+		echo "Tunnel closed"; \
+	else \
+		echo "No tunnel control socket; nothing to close"; \
+	fi
+
+# IMPORTANT: Run only with "LOCAL_RUN=false" in ".env" file.
+# IMPORTANT: Remember to update "VAULT_TOKEN" in ".env" file.
+run-app: ssh-tunnel-open
+	$(DOCKER_COMMAND) compose -f docker-compose.yaml -f docker-compose.local.yaml up shiny-app; \
+	make ssh-tunnel-close
