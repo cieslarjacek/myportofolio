@@ -61,7 +61,7 @@ jobs:
           echo "Branch '$BRANCH' to '$BASE' is valid."
 
       - name: Scan for committed secrets
-        uses: trufflesecurity/trufflehog@288a8a8643a2c5a36b81d231c550dccfa0beeb64 # main @ 2026-09
+        uses: trufflesecurity/trufflehog@e28360875917c9c730f9c64aae29fb93aa6c359e # main @ 2026-09
         with:
           path: ./
           base: ${{ github.event.pull_request.base.sha }}
