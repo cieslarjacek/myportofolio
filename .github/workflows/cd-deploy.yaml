@@ -31,12 +31,10 @@ on:
         required: true
       SERVER_SSH_KEY:
         required: true
-      SERVER_SSH_FINGERPRINT:
-        required: true
 
 env:
   REGISTRY: ghcr.io
-  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_USER: ${{ github.repository_owner }}
 
 jobs:
   deploy:
@@ -96,20 +94,37 @@ jobs:
       # All environments - trigger the deploy on the server.
       #
       # The deploy key is pinned to a forced command on the server
-      # ("/usr/local/sbin/deploy-app"), which parses this string verbatim from
+      # ("/usr/local/sbin/deploy-app"), which reads this string from
       # SSH_ORIGINAL_COMMAND and accepts only "deploy <env> <version>".
       #
-      # IMPORTANT: keep `script` to ONE line and do NOT set `script_stop`. Both
-      # cause the action to prepend extra shell lines, which the forced command
-      # rejects as illegal input.
+      # Plain OpenSSH from the runner image: no third-party code handles the key
+      # (appleboy/ssh-action downloaded an unverified drone-ssh binary at runtime).
+      # Host verification: known_hosts built from the pinned public host key.
       - name: Deploy to server via SSH
-        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: 2222
-          # Host key pin. Without it the action skips host key verification;
-          # it does not read "~/.ssh/known_hosts".
-          fingerprint: ${{ secrets.SERVER_SSH_FINGERPRINT }}
-          script: deploy ${{ inputs.environment }} ${{ inputs.version }}
+        env:
+          SSH_HOST: ${{ secrets.SERVER_HOST }}
+          SSH_USER: ${{ secrets.SERVER_USER }}
+          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SSH_HOST_KEY: ${{ vars.SERVER_SSH_HOST_KEY }}
+          DEPLOY_ENV: ${{ inputs.environment }}
+          DEPLOY_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST_KEY:?repository variable SERVER_SSH_HOST_KEY is not set}"
+          # Key and known_hosts are created 0600 in a job-private temp dir, removed on exit.
+          umask 077
+          ssh_dir="${RUNNER_TEMP}/ssh"
+          mkdir -p "$ssh_dir"
+          trap 'rm -rf -- "$ssh_dir"' EXIT
+          # OpenSSH requires a trailing newline after the private key block.
+          printf '%s\n' "$SSH_KEY" > "$ssh_dir/id_deploy"
+          # Non-default port => known_hosts entry must use the [host]:port form.
+          printf '[%s]:2222 %s\n' "$SSH_HOST" "$SSH_HOST_KEY" > "$ssh_dir/known_hosts"
+          # No -t: no pty is requested, so the wrapper logs tty=none.
+          # ssh exits with the wrapper's status, so a failed deploy fails the job.
+          timeout 10m ssh -p 2222 \
+            -i "$ssh_dir/id_deploy" -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$ssh_dir/known_hosts" -o GlobalKnownHostsFile=/dev/null \
+            -o ConnectTimeout=30 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 \
+            "${SSH_USER}@${SSH_HOST}" "deploy ${DEPLOY_ENV} ${DEPLOY_VERSION}"

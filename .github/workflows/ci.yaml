@@ -40,13 +40,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Validate source branch
+        env:
+          BASE: ${{ github.base_ref }}
+          BRANCH: ${{ github.head_ref }}
         run: |
-          BASE="${{ github.base_ref }}"
-          BRANCH="${{ github.head_ref }}"
-
           if [[ "$BASE" == "develop" ]]; then
             if [[ ! "$BRANCH" =~ ^(feature|release)/.+ ]]; then
               echo "PRs to 'develop' must originate from 'feature/*' or 'release/*'."
@@ -86,6 +87,8 @@ jobs:
       image_name: ${{ steps.app_specs.outputs.image_name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Extract APP specs
         id: app_specs
@@ -184,6 +187,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -213,6 +218,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -242,6 +249,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -271,6 +280,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -319,7 +330,7 @@ jobs:
         run: |
           APP_VERSION="${{ needs.build.outputs.app_version }}"
           IMAGE_NAME="${{ needs.build.outputs.image_name }}"
-          TARGET="ghcr.io/${{ github.actor }}/${IMAGE_NAME}"
+          TARGET="ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}"
 
           docker tag ${IMAGE_NAME} ${TARGET}:${APP_VERSION}
           docker tag ${IMAGE_NAME} ${TARGET}:${{ github.sha }}
