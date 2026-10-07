@@ -20,6 +20,9 @@ LABEL description="Docker image that contains My Portfolio App."
 
 # Security updates.
 RUN apt-get update \
+    && apt-get install -y \
+    gpgv \
+    linux-libc-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # R updates.
