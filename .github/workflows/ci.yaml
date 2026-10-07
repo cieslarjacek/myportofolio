@@ -40,13 +40,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Validate source branch
+        env:
+          BASE: ${{ github.base_ref }}
+          BRANCH: ${{ github.head_ref }}
         run: |
-          BASE="${{ github.base_ref }}"
-          BRANCH="${{ github.head_ref }}"
-
           if [[ "$BASE" == "develop" ]]; then
             if [[ ! "$BRANCH" =~ ^(feature|release)/.+ ]]; then
               echo "PRs to 'develop' must originate from 'feature/*' or 'release/*'."
@@ -61,12 +62,13 @@ jobs:
           echo "Branch '$BRANCH' to '$BASE' is valid."
 
       - name: Scan for committed secrets
-        uses: trufflesecurity/trufflehog@e28360875917c9c730f9c64aae29fb93aa6c359e # main @ 2026-09
+        uses: trufflesecurity/trufflehog@b2b0a92070f206ab7b5a1105d82a7f2f48d92341 # v3.99.0
         with:
           path: ./
           base: ${{ github.event.pull_request.base.sha }}
           head: ${{ github.event.pull_request.head.sha }}
           extra_args: --only-verified
+          version: 3.99.0@sha256:39ee0643ae620664287bcc95f133f3fc8484590d6ca4e7105d96b90dac4b9f6f
 
   # 1. Docker build
   build:
@@ -86,6 +88,8 @@ jobs:
       image_name: ${{ steps.app_specs.outputs.image_name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Extract APP specs
         id: app_specs
@@ -184,6 +188,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -213,6 +219,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -242,6 +250,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -271,6 +281,8 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -319,7 +331,7 @@ jobs:
         run: |
           APP_VERSION="${{ needs.build.outputs.app_version }}"
           IMAGE_NAME="${{ needs.build.outputs.image_name }}"
-          TARGET="ghcr.io/${{ github.actor }}/${IMAGE_NAME}"
+          TARGET="ghcr.io/${{ github.repository_owner }}/${IMAGE_NAME}"
 
           docker tag ${IMAGE_NAME} ${TARGET}:${APP_VERSION}
           docker tag ${IMAGE_NAME} ${TARGET}:${{ github.sha }}
