@@ -68,11 +68,16 @@ jobs:
           base: ${{ github.event.pull_request.base.sha }}
           head: ${{ github.event.pull_request.head.sha }}
           extra_args: --only-verified
-          version: 3.99.0@sha256:39ee0643ae620664287bcc95f133f3fc8484590d6ca4e7105d96b90dac4b9f6f
+          version: 3.99.2@sha256:47a84bc18a0d04a165498bbbd3bacfd84176661cbc91f8e0f85467f6a771e99a
 
-  # 1. Docker build
+  # 1. Docker build + SAST gate
+  # SAST (Static Application Security Testing) gate logic:
+  #   1. Warm build (shared GHCR layer cache) -> Trivy scan.
+  #   2. Fixable HIGH/CRITICAL findings -> ONE cold no cache rebuild
+  #      (and refreshment of the shared cache for later PRs) -> final Trivy scan.
+  #   3. The final scan decides the job. No retries beyond that, no re-triggers.
   build:
-    name: Docker build
+    name: Docker build and SAST
     needs: preflight
     runs-on: ubuntu-latest
     permissions:
@@ -81,11 +86,14 @@ jobs:
     if: |
       (github.base_ref == 'develop' && startsWith(github.head_ref, 'feature/')) ||
       (startsWith(github.base_ref, 'release/') && (startsWith(github.head_ref, 'bugfix/') || startsWith(github.head_ref, 'hotfix/')))
+    env:
+      CI: true
     outputs:
       app_name: ${{ steps.app_specs.outputs.app_name }}
       app_version: ${{ steps.app_specs.outputs.app_version }}
       env_name: ${{ steps.app_specs.outputs.env_name }}
       image_name: ${{ steps.app_specs.outputs.image_name }}
+      cold_rebuild: ${{ steps.sast_gate.outputs.rebuild == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -110,6 +118,7 @@ jobs:
           echo "env_name=$ENV_NAME" >> $GITHUB_OUTPUT
           echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
           echo "ci_image_name=$CI_IMAGE_NAME" >> $GITHUB_OUTPUT
+          echo "ENV_NAME=$ENV_NAME" >> $GITHUB_ENV
 
       - name: Validate version format
         run: |
@@ -139,15 +148,48 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build production image
-        run: make docker-build
-        env:
-          CI: true
+      - name: Build production image (warm)
+        run: make docker-build ENV_NAME="${ENV_NAME}"
+
+      - name: SAST check (warm image)
+        id: sast_warm
+        continue-on-error: true
+        run: make ci-sast ENV_NAME="${ENV_NAME}" SAST_LOGFILE=ci_sast_warm.log
+
+      - name: SAST gate
+        id: sast_gate
+        if: steps.sast_warm.outcome == 'failure'
+        run: |
+          if grep -qE '^Total: [1-9]' ci_sast_warm.log; then
+            echo "::warning::Fixable HIGH/CRITICAL findings in cached layers - one cold rebuild follows."
+            echo "rebuild=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Trivy failed without vulnerability findings - see ci_sast_warm.log."
+            exit 1
+          fi
+
+      - name: Rebuild production image from scratch (cold)
+        if: steps.sast_gate.outputs.rebuild == 'true'
+        run: make docker-rebuild ENV_NAME="${ENV_NAME}"
+
+      - name: SAST check (cold image)
+        if: steps.sast_gate.outputs.rebuild == 'true'
+        run: make ci-sast ENV_NAME="${ENV_NAME}" SAST_LOGFILE=ci_sast_cold.log
+
+      - name: Upload SAST logs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: sast-log
+          path: |
+            ci_sast_warm.log
+            ci_sast_cold.log
+            docker_rebuild.log
+          if-no-files-found: ignore
+          retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
 
       - name: Build CI image
-        run: make docker-build-ci
-        env:
-          CI: true
+        run: make docker-build-ci ENV_NAME="${ENV_NAME}"
 
       - name: Upload build log
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -210,38 +252,7 @@ jobs:
           path: ci_linting.log
           retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
 
-  # 3. SAST (Static Application Security Testing)
-  sast:
-    name: SAST check
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: docker-image
-          path: /tmp
-
-      - name: Load production image
-        run: docker load < /tmp/image.tar.gz
-
-      - name: Run SAST check
-        run: make ci-sast
-
-      - name: Upload SAST log
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
-        with:
-          name: sast-log
-          path: ci_sast.log
-          retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
-
-  # 4. Coverage
+  # 3. Coverage
   coverage:
     name: Coverage check
     needs: build
@@ -272,10 +283,10 @@ jobs:
           path: ci_coverage.log
           retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
 
-  # 5. Unit tests
+  # 4. Unit tests
   unit-tests:
     name: Unit tests check
-    needs: [linting, sast, coverage]
+    needs: [linting, coverage]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -303,7 +314,7 @@ jobs:
           path: ci_unittests.log
           retention-days: ${{ vars.LOG_RETENTION_PERIOD }}
 
-  # 6. Push production image to GHCR
+  # 5. Push production image to GHCR
   push:
     name: Push image to GHCR
     needs: [build, unit-tests]
@@ -340,10 +351,10 @@ jobs:
           docker push ${TARGET}:${{ github.sha }}
           docker push ${TARGET}:latest
 
-  # 7. Report
+  # 6. Report
   report:
     name: Report
-    needs: [unit-tests, push]
+    needs: [build, unit-tests, push]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -355,19 +366,26 @@ jobs:
           path: logs/
 
       - name: Write job summary
+        env:
+          COLD_REBUILD: ${{ needs.build.outputs.cold_rebuild }}
+          PUSH_RESULT: ${{ needs.push.result }}
         run: |
-          echo "## CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Stage        | Log                       |" >> $GITHUB_STEP_SUMMARY
-          echo "|--------------|---------------------------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker build | \`docker_build.log\`      |" >> $GITHUB_STEP_SUMMARY
-          echo "| Linting      | \`ci_linting.log\`        |" >> $GITHUB_STEP_SUMMARY
-          echo "| SAST         | \`ci_sast.log\`           |" >> $GITHUB_STEP_SUMMARY
-          echo "| Coverage     | \`ci_coverage.log\`       |" >> $GITHUB_STEP_SUMMARY
-          echo "| Unit tests   | \`ci_unittests.log\`      |" >> $GITHUB_STEP_SUMMARY
-          echo "| GHCR push    | ${{ needs.push.result }}  |" >> $GITHUB_STEP_SUMMARY
+          cat << EOF >> "$GITHUB_STEP_SUMMARY"
+          ## CI Pipeline Summary
 
-  # 8. Cleanup - delete short-lived branch after merge
+          | Stage          | Log                                      |
+          |----------------|------------------------------------------|
+          | Docker build   | \`docker_build.log\`                     |
+          | SAST (warm)    | \`ci_sast_warm.log\`                     |
+          | Cold rebuild   | ${COLD_REBUILD} (\`docker_rebuild.log\`) |
+          | SAST (rebuilt) | \`ci_sast_cold.log\`                     |
+          | Linting        | \`ci_linting.log\`                       |
+          | Coverage       | \`ci_coverage.log\`                      |
+          | Unit tests     | \`ci_unittests.log\`                     |
+          | GHCR push      | ${PUSH_RESULT}                           |
+          EOF
+
+  # 7. Cleanup - delete short-lived branch after merge
   cleanup:
     name: Delete merged branch
     runs-on: ubuntu-latest
