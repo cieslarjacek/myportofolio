@@ -93,7 +93,8 @@ test_that("find_other_components() returns valid paths", {
 })
 
 test_that("source_components() reads files properly", {
-  withr::with_tempfile(c("test_file1", "test_file2"),
+  withr::with_tempfile(
+    c("test_file1", "test_file2"),
     {
       writeLines(c(a <- 10, "100"), test_file1)
       writeLines(c(b <- 20, "200"), test_file2)
@@ -112,36 +113,27 @@ test_that("source_components() reads files properly", {
   )
 })
 
-test_that(
-  "source_components() throws argument type error - 'component_paths'",
-  {
-    error_msg <- "Assertion on 'component_paths' failed"
+test_that("source_components() errors on invalid 'component_paths' type", {
+  error_msg <- "Assertion on 'component_paths' failed"
 
-    expect_error(source_components(1), error_msg)
-    expect_error(source_components(TRUE), error_msg)
-    expect_error(source_components(NULL), error_msg)
-    expect_error(source_components(NA), error_msg)
-    expect_error(source_components(character(0)), error_msg)
-  }
-)
+  expect_error(source_components(1), error_msg)
+  expect_error(source_components(TRUE), error_msg)
+  expect_error(source_components(NULL), error_msg)
+  expect_error(source_components(NA), error_msg)
+  expect_error(source_components(character(0)), error_msg)
+})
 
-test_that(
-  "source_components() throws error and warning when a file does not exist",
-  {
-    expect_error(source_components("this_file_does_not_exist_12345.R")) %>%
-      expect_warning(.)
-  }
-)
+test_that("source_components() errors and warns when a file does not exist", {
+  expect_error(source_components("this_file_does_not_exist_12345.R")) %>%
+    expect_warning(.)
+})
 
-test_that(
-  "source_components() throws argument type error - 'evalutation_env'",
-  {
-    error_msg <- "Assertion failed. One of the following must apply"
+test_that("source_components() errors on invalid 'evalutation_env' type", {
+  error_msg <- "Assertion failed. One of the following must apply"
 
-    expect_error(source_components("a", "b"), error_msg)
-    expect_error(source_components("a", 1), error_msg)
-    expect_error(source_components("a", NULL), error_msg)
-    expect_error(source_components("a", NA), error_msg)
-    expect_error(source_components("a", character(0)), error_msg)
-  }
-)
+  expect_error(source_components("a", "b"), error_msg)
+  expect_error(source_components("a", 1), error_msg)
+  expect_error(source_components("a", NULL), error_msg)
+  expect_error(source_components("a", NA), error_msg)
+  expect_error(source_components("a", character(0)), error_msg)
+})

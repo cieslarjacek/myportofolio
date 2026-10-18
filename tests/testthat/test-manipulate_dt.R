@@ -1,7 +1,8 @@
 # TODO: ADD "expect_error" TO TEST ASSERTIONS.
 test_that("extract_dt_list_range() returns correct range without filtering", {
   test_data_list <- list(
-    name1 = data.frame(col1 = c(1:5)), name2 = data.frame(col1 = c(4:10))
+    name1 = data.frame(col1 = c(1:5)),
+    name2 = data.frame(col1 = c(4:10))
   )
   test_config <- list("col1")
 
@@ -55,7 +56,8 @@ test_that("convert_dt_to_string() returns correct string", {
   )
   expected <- capture.output(
     write.csv(test_df, row.names = FALSE, na = "", quote = TRUE)
-  ) %>% paste(collapse = "\n")
+  ) %>%
+    paste(collapse = "\n")
 
   expect_equal(convert_dt_to_string(test_df), expected)
 })
@@ -68,7 +70,10 @@ test_that("convert_dt_to_json() returns correct JSON object", {
   )
   expected <- jsonlite::toJSON(
     test_df,
-    dataframe = "rows", pretty = FALSE, auto_unbox = TRUE, na = "null"
+    dataframe = "rows",
+    pretty = FALSE,
+    auto_unbox = TRUE,
+    na = "null"
   )
 
   expect_equal(convert_dt_to_json(test_df), expected)
@@ -98,23 +103,31 @@ test_that("source_weight() returns correct weighted data table", {
   )
 
   test_indicator_df_list <- list(
-    name1 = test_indicator_df1, name2 = test_indicator_df2
+    name1 = test_indicator_df1,
+    name2 = test_indicator_df2
   )
   test_weight_df_list <- list(
-    name1 = test_weight_df1, name2 = test_weight_df2
+    name1 = test_weight_df1,
+    name2 = test_weight_df2
   )
 
   expected <- list(
-    name1 = data.table::setkey(data.table::merge.data.table(
-      test_indicator_df1,
-      test_weight_df1,
-      by = c("country_id", "time_period")
-    ), NULL),
-    name2 = data.table::setkey(data.table::merge.data.table(
-      test_indicator_df2,
-      test_weight_df2,
-      by = c("country_id", "time_period")
-    ), NULL)
+    name1 = data.table::setkey(
+      data.table::merge.data.table(
+        test_indicator_df1,
+        test_weight_df1,
+        by = c("country_id", "time_period")
+      ),
+      NULL
+    ),
+    name2 = data.table::setkey(
+      data.table::merge.data.table(
+        test_indicator_df2,
+        test_weight_df2,
+        by = c("country_id", "time_period")
+      ),
+      NULL
+    )
   )
   names(expected$name1) <- c("country_id", "time_period", "value", "weight")
   names(expected$name2) <- c("country_id", "time_period", "value", "weight")
@@ -152,9 +165,12 @@ test_that("set_decade_aggregator() gives proper function - 'mean'", {
 })
 
 test_that("set_decade_aggregator() gives proper function - 'weighted.mean'", {
-  expected <- test_decade_dt1[, .(
-    value = sum(value * weight) / sum(weight)
-  ), by = .(check_decade, country_id)]
+  expected <- test_decade_dt1[,
+    .(
+      value = sum(value * weight) / sum(weight)
+    ),
+    by = .(check_decade, country_id)
+  ]
   names(expected)[1] <- "Decade"
 
   actual_aggregation <- set_decade_aggregator(

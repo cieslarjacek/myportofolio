@@ -1,7 +1,7 @@
 test_that("get_data() returns the object fetched from storage", {
   local_mocked_bindings(
     s3readRDS = function(...) mock_storage_data,
-    .package  = "aws.s3"
+    .package = "aws.s3"
   )
   test_result <- StorageService$new(
     mock_storage_connection
@@ -13,7 +13,7 @@ test_that("get_data() returns the object fetched from storage", {
 test_that("get_data() returns message and NULL on error", {
   local_mocked_bindings(
     s3readRDS = function(...) stop("connection refused"),
-    .package  = "aws.s3"
+    .package = "aws.s3"
   )
 
   expect_message(
@@ -28,7 +28,7 @@ test_that("get_data() returns message and NULL on error", {
 test_that("get_data returns messages and NULL on warning", {
   local_mocked_bindings(
     s3readRDS = function(...) warning("checksum mismatch"),
-    .package  = "aws.s3"
+    .package = "aws.s3"
   )
 
   expect_message(
@@ -43,7 +43,7 @@ test_that("get_data returns messages and NULL on warning", {
 test_that("get_geometry_all() delegates to get_data('geometry_all')", {
   local_mocked_bindings(
     s3readRDS = function(...) mock_storage_data,
-    .package  = "aws.s3"
+    .package = "aws.s3"
   )
 
   expect_equal(
@@ -62,7 +62,8 @@ test_that("put_data() passes 'source_object' to s3saveRDS()", {
     .package = "aws.s3"
   )
   test_service <- StorageService$new(mock_storage_connection)$put_data(
-    "geometry_all", mock_storage_data
+    "geometry_all",
+    mock_storage_data
   )
 
   expect_equal(saved, mock_storage_data)
@@ -71,12 +72,13 @@ test_that("put_data() passes 'source_object' to s3saveRDS()", {
 test_that("put_data() message and NULL on error", {
   local_mocked_bindings(
     s3saveRDS = function(...) stop("write failed"),
-    .package  = "aws.s3"
+    .package = "aws.s3"
   )
 
   expect_message(
     test_result <- StorageService$new(mock_storage_connection)$put_data(
-      "geometry_all", mock_storage_data
+      "geometry_all",
+      mock_storage_data
     ),
     "'put_data' failed with the error message"
   )
@@ -86,12 +88,13 @@ test_that("put_data() message and NULL on error", {
 test_that("put_data returns message and NULL on warning", {
   local_mocked_bindings(
     s3saveRDS = function(...) warning("slow upload"),
-    .package  = "aws.s3"
+    .package = "aws.s3"
   )
 
   expect_message(
     test_result <- StorageService$new(mock_storage_connection)$put_data(
-      "geometry_all", mock_storage_data
+      "geometry_all",
+      mock_storage_data
     ),
     "'put_data' generated warning"
   )
@@ -120,7 +123,7 @@ test_that("get_storage_connection() returns correct list from valid secrets", {
   test_secrets <- c(
     MINIO_ACCESS_KEY = "ak",
     MINIO_SECRET_KEY = "sk",
-    MINIO_ENDPOINT   = "https://minio.example.com"
+    MINIO_ENDPOINT = "https://minio.example.com"
   )
   test_result <- get_storage_connection(test_secrets)
 
@@ -141,9 +144,11 @@ test_that("get_storage_connection() rejects an unnamed secrets vector", {
 
 test_that("get_storage_connection rejects an unnamed secrets argument", {
   expect_error(
-    get_storage_connection(list("ak", "zc")), "Assertion on 'secrets' failed"
+    get_storage_connection(list("ak", "zc")),
+    "Assertion on 'secrets' failed"
   )
   expect_error(
-    get_storage_connection(c("ak", "zc")), "Assertion on 'secrets' failed"
+    get_storage_connection(c("ak", "zc")),
+    "Assertion on 'secrets' failed"
   )
 })

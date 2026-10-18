@@ -46,7 +46,8 @@ build_world_map <- function(data_list, color_theme) {
     add_view() %>%
     add_clickable_polygons(data_list$clickable, color_theme$clickable) %>%
     add_notclickable_polygons(
-      data_list$notclickable, color_theme$notclickable
+      data_list$notclickable,
+      color_theme$notclickable
     ) %>%
     add_reset_button()
 }
@@ -173,10 +174,12 @@ make_map_color_theme <- function(
 
   list(
     clickable = setNames(
-      unname(color_palette[c("stroke", "base", "base_dk")]), target_names
+      unname(color_palette[c("stroke", "base", "base_dk")]),
+      target_names
     ),
     notclickable = setNames(
-      unname(color_palette[c("stroke", "neutral", "empty")]), target_names
+      unname(color_palette[c("stroke", "neutral", "empty")]),
+      target_names
     )
   )
 }

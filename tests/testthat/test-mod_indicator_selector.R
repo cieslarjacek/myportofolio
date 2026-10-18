@@ -34,18 +34,15 @@ test_that("output$selector is not rendered when choices is empty list", {
   )
 })
 
-test_that(
-  "output$selector is not rendered when choices is empty character vector",
-  {
-    shiny::testServer(
-      indicatorSelectorServer,
-      args = list(choices = character(0)),
-      {
-        expect_error(output$selector, class = "shiny.silent.error")
-      }
-    )
-  }
-)
+test_that("output$selector is not rendered when choices is empty char vector", {
+  shiny::testServer(
+    indicatorSelectorServer,
+    args = list(choices = character(0)),
+    {
+      expect_error(output$selector, class = "shiny.silent.error")
+    }
+  )
+})
 
 test_that("output$selector errors for unnamed character vector", {
   shiny::testServer(

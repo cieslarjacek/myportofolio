@@ -95,7 +95,8 @@ assert_polygon_data <- function(target_object) {
   # Assert data class and column names.
   checkmate::assert_class(
     target_object,
-    classes = c("sf", "data.frame"), null.ok = FALSE
+    classes = c("sf", "data.frame"),
+    null.ok = FALSE
   )
   checkmate::assert_names(
     names(target_object),

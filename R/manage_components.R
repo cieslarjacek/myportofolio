@@ -16,7 +16,9 @@ find_all_components <- function(sub_dir, main_dir) {
     lapply(function(component) {
       list.files(
         component,
-        pattern = "\\.R$", full.names = TRUE, include.dirs = FALSE
+        pattern = "\\.R$",
+        full.names = TRUE,
+        include.dirs = FALSE
       )
     }) %>%
     unlist()
@@ -25,7 +27,8 @@ find_all_components <- function(sub_dir, main_dir) {
 #' @rdname find_all_components
 #' @export
 find_ui_components <- function(
-  sub_dir = set_app_components(), main_dir = "components"
+  sub_dir = set_app_components(),
+  main_dir = "components"
 ) {
   find_all_components(sub_dir, main_dir) %>%
     .[grepl("ui_", .)]
@@ -34,7 +37,8 @@ find_ui_components <- function(
 #' @rdname find_all_components
 #' @export
 find_server_components <- function(
-  sub_dir = set_app_components(), main_dir = "components"
+  sub_dir = set_app_components(),
+  main_dir = "components"
 ) {
   find_all_components(sub_dir, main_dir) %>%
     .[grepl("server_", .)]
@@ -43,7 +47,8 @@ find_server_components <- function(
 #' @rdname find_all_components
 #' @export
 find_other_components <- function(
-  sub_dir = set_app_components(), main_dir = "components"
+  sub_dir = set_app_components(),
+  main_dir = "components"
 ) {
   find_all_components(sub_dir, main_dir) %>%
     .[!grepl("ui_|server_", .)]
@@ -54,18 +59,20 @@ find_other_components <- function(
 #' Sources each file in `component_paths` set using [base::source()].
 #'
 #' @param component_paths A character vector with component file paths.
-#' @param evalutation_env Environment in which the parsed expressions are
+#' @param evaluation_env Environment in which the parsed expressions are
 #'   evaluated. Passed to [base::source()] as `local` parameter. Default is
 #'   `globalenv()`.
 #' @export
-source_components <- function(component_paths, evalutation_env = globalenv()) {
+source_components <- function(component_paths, evaluation_env = globalenv()) {
   assert_with(
-    checkmate::assert_character, component_paths, assert_character_args()
+    checkmate::assert_character,
+    component_paths,
+    assert_character_args()
   )
   checkmate::assert(
-    checkmate::check_logical(evalutation_env, any.missing = FALSE, len = 1),
-    checkmate::check_environment(evalutation_env)
+    checkmate::check_logical(evaluation_env, any.missing = FALSE, len = 1),
+    checkmate::check_environment(evaluation_env)
   )
 
-  sapply(component_paths, source, local = evalutation_env)
+  sapply(component_paths, source, local = evaluation_env)
 }

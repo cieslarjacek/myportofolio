@@ -1,12 +1,18 @@
 test_that("str_to_kebab_case() converts strings properly", {
   test_strings <- c(
-    "Jestem Adaś?", "mam#%ha1h bim", "!Hóla, muy@bien_am9igo", "Some Nice name"
+    "Jestem Adaś?",
+    "mam#%ha1h bim",
+    "!Hóla, muy@bien_am9igo",
+    "Some Nice name"
   )
 
   expect_equal(
     str_to_kebab_case(test_strings),
     c(
-      "jestem-adas", "mam-ha1h-bim", "hola-muy-bien-am9igo", "some-nice-name"
+      "jestem-adas",
+      "mam-ha1h-bim",
+      "hola-muy-bien-am9igo",
+      "some-nice-name"
     )
   )
 })

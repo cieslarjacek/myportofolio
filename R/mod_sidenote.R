@@ -28,7 +28,8 @@ sidenoteServer <- function(id, message = get_sidenote_message(id)) {
 #'
 #' @rdname sidenoteUI
 get_sidenote_message <- function(id) {
-  switch(id,
+  switch(
+    id,
     no_panel_selected = "Please click one of the panels on the left to open it and see some examples.",
     world_trends = c(
       "<p>Data source: <a href='https://data.worldbank.org/' target='_blank'>World Bank Open Data</a></p>",

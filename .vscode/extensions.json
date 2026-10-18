@@ -1,0 +1,22 @@
+{
+    "recommendations": [
+        "grapecity.gc-excelviewer",
+        "ms-azuretools.vscode-containers",
+        "ms-azuretools.vscode-docker",
+        "ms-python.black-formatter",
+        "ms-python.debugpy",
+        "ms-python.flake8",
+        "ms-python.isort",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.vscode-python-envs",
+        "ms-toolsai.jupyter",
+        "ms-vscode-remote.vscode-remote-extensionpack",
+        "natizyskunk.sftp",
+        "Posit.air-vscode",
+        "redhat.vscode-yaml",
+        "reditorsupport.r-syntax",
+        "reditorsupport.r",
+        "sibiraj-s.vscode-scss-formatter"
+    ]
+}

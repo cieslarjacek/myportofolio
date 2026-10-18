@@ -12,7 +12,8 @@ for (obj_name in names(reactivevals_manager$init_objects)) {
 }
 
 # Update and reset reactive values after indicator selection.
-shiny::observeEvent(indicator_id(),
+shiny::observeEvent(
+  indicator_id(),
   {
     if (myportfolio::is_empty(indicator_id())) {
       table_aggregation_params(
@@ -81,13 +82,15 @@ world_geometry_data <- shiny::reactive({
 
   db_connection <- myportfolio::create_db_connection(app_secrets)
   db_extractor <- myportfolio::DbDataExtractor$new(
-    db_connection, temp_sql_db_schema
+    db_connection,
+    temp_sql_db_schema
   )
   country_ids_df <- db_extractor$get_country_ids()
   db_extractor$disconnect()
 
   geom_split <- rev(split(
-    geometry_all, geometry_all$id %in% country_ids_df$country_id
+    geometry_all,
+    geometry_all$id %in% country_ids_df$country_id
   ))
   names(geom_split) <- app_settings$data_labels$world_trends
   geom_split
@@ -102,7 +105,9 @@ country_label_data <- shiny::eventReactive(world_geometry_data(), {
 # Render the world map.
 system.time({
   worldMapServer(
-    "world_trends", indicator_id, list(world_geometry_data, country_label_data)
+    "world_trends",
+    indicator_id,
+    list(world_geometry_data, country_label_data)
   )
 })
 
@@ -114,9 +119,11 @@ shiny::observeEvent(input$`world_trends-map_shape_click`$id, {
   temp_label <- country_label_data()[id == temp_id, label]
   temp_click <- list(id = temp_id, label = temp_label)
 
-  if (any(
-    myportfolio::sapply_identical(map_click_registry$active, temp_click)
-  )) {
+  if (
+    any(
+      myportfolio::sapply_identical(map_click_registry$active, temp_click)
+    )
+  ) {
     # Run "remove country click" statement.
     map_click_registry$add <- reactivevals_manager$reset("map_click_registry")
     map_click_registry$remove <- temp_click
@@ -130,7 +137,8 @@ shiny::observeEvent(input$`world_trends-map_shape_click`$id, {
     }
 
     session$sendCustomMessage(
-      "recolorLayer", list(c(temp_click$id, color_palette$base))
+      "recolorLayer",
+      list(c(temp_click$id, color_palette$base))
     )
   } else if (length(map_click_registry$active) < 5) {
     # Run "add country click" statement.
@@ -149,7 +157,8 @@ shiny::observeEvent(input$`world_trends-map_shape_click`$id, {
     )
 
     session$sendCustomMessage(
-      "recolorLayer", list(c(temp_click$id, map_available_color()[1]))
+      "recolorLayer",
+      list(c(temp_click$id, map_available_color()[1]))
     )
   }
 })
@@ -181,7 +190,8 @@ shiny::observeEvent(input$reset_selection, {
 
 shiny::observe({
   session$sendCustomMessage(
-    "toggleWorldMapResetBtn", !myportfolio::is_empty(map_click_registry$active)
+    "toggleWorldMapResetBtn",
+    !myportfolio::is_empty(map_click_registry$active)
   )
 })
 
@@ -195,12 +205,12 @@ shiny::observeEvent(input$color_return, {
 shiny::observeEvent(map_click_registry$add$id, {
   shiny::req(map_click_registry$add$id)
 
-
   # TODO: USE FUTURE AND (MAYBE) PROMISES HERE.
   # THE CHART SHOULD GET THE DATA BEFORE TABLE.
   db_connection <- myportfolio::create_db_connection(app_secrets)
   db_extractor <- myportfolio::DbDataExtractor$new(
-    db_connection, sql_db_schema()
+    db_connection,
+    sql_db_schema()
   )
   temp_indicator_dt <- data.table::as.data.table(
     db_extractor$get_indicator_values(map_click_registry$add$id)
@@ -224,16 +234,19 @@ shiny::observeEvent(map_click_registry$add$id, {
   )
 
   chart_active_data_range$absolute$x <- myportfolio::extract_dt_list_range(
-    chart_active_data(), list("time_period")
+    chart_active_data(),
+    list("time_period")
   )
 
   chart_active_data_range$absolute$y <- myportfolio::extract_dt_list_range(
-    chart_active_data(), list("value")
+    chart_active_data(),
+    list("value")
   )
 })
 
 # Render the base trend chart.
-shiny::observeEvent(chart_active_data(),
+shiny::observeEvent(
+  chart_active_data(),
   {
     # Don't re-build if the trend chart is already rendered.
     if (!is.null(chart_with_one_trace())) {
@@ -246,7 +259,8 @@ shiny::observeEvent(chart_active_data(),
       chart_active_data()[map_click_registry$add$label],
       myportfolio::make_chart_color_theme(map_available_color()[1]),
       myportfolio::make_chart_config(
-        indicator_id(), chart_active_data_range$absolute$y
+        indicator_id(),
+        chart_active_data_range$absolute$y
       )
     )
     chart_with_one_trace(temp_plot)
@@ -258,7 +272,9 @@ shiny::observeEvent(chart_active_data(),
 )
 
 myportfolio::trendChartServer(
-  "world_trends", ui_render_flag, chart_with_one_trace
+  "world_trends",
+  ui_render_flag,
+  chart_with_one_trace
 )
 
 # Add a series (trace) to the trend chart.
@@ -294,7 +310,8 @@ wt_chart_relayout_event <- shiny::reactive({
   shiny::req(ui_render_flag())
   plotly::event_data("plotly_relayout", source = "wt_chart")
 })
-observeEvent(wt_chart_relayout_event(),
+observeEvent(
+  wt_chart_relayout_event(),
   {
     xautorange_event <- wt_chart_relayout_event()$xaxis.autorange
     xrange_event <- as.numeric(wt_chart_relayout_event()$xaxis.range)
@@ -303,7 +320,8 @@ observeEvent(wt_chart_relayout_event(),
     if (!myportfolio::is_empty(xautorange_event)) {
       chart_active_data_range$current <- chart_active_data_range$absolute
       myportfolio::updtTrendChartYaxisServer(
-        "world_trends", chart_active_data_range$absolute$y
+        "world_trends",
+        chart_active_data_range$absolute$y
       )
     } else if (!myportfolio::is_empty(xrange_event)) {
       xrange <- myportfolio::make_xrange(xrange_event)
@@ -334,10 +352,12 @@ shiny::observeEvent(map_click_registry$remove$id, {
   )
 
   chart_active_data_range$absolute$x <- myportfolio::extract_dt_list_range(
-    chart_active_data(), list("time_period")
+    chart_active_data(),
+    list("time_period")
   )
   chart_active_data_range$absolute$y <- myportfolio::extract_dt_list_range(
-    chart_active_data(), list("value")
+    chart_active_data(),
+    list("value")
   )
 
   xrange <- myportfolio::select_range(list(
@@ -351,7 +371,9 @@ shiny::observeEvent(map_click_registry$remove$id, {
   chart_active_data_range$current$y <- yrange
 
   myportfolio::removeTrendChartSeriesServer(
-    "world_trends", series_label, yrange
+    "world_trends",
+    series_label,
+    yrange
   )
 })
 
@@ -374,7 +396,8 @@ shiny::observeEvent(
     shiny::req(sum(current_click) > 0)
 
     target_click <- myportfolio::extract_download_btn_click(list(
-      current_click, chart_export_btn_click()
+      current_click,
+      chart_export_btn_click()
     ))
     chart_export_btn_click(current_click)
     target_filename <- myportfolio::make_download_file_name(
@@ -406,7 +429,9 @@ shiny::observeEvent(
     }
 
     payload <- list(
-      data = target_data, format = target_click, filename = target_filename
+      data = target_data,
+      format = target_click,
+      filename = target_filename
     )
     session$sendCustomMessage("exportTrendChartData", payload)
   }

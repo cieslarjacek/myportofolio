@@ -52,7 +52,10 @@ get_ui_pattern <- function() {
 make_ui_pattern <- function(url_path) {
   checkmate::assert_character(
     url_path,
-    pattern = "^/", any.missing = FALSE, all.missing = FALSE, unique = TRUE
+    pattern = "^/",
+    any.missing = FALSE,
+    all.missing = FALSE,
+    unique = TRUE
   )
 
   target_regex <- paste0("\\", url_path, collapse = "|")

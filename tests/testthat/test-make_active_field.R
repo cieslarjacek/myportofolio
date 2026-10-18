@@ -27,11 +27,8 @@ test_that("make_active_field_wrapper() reads private fields correctly", {
   expect_equal(test_obj$epsilon, "bye")
 })
 
-test_that(
-  "make_active_field_wrapper() raises a read-only error for each wrapped field",
-  {
-    test_obj <- TestR6Class$new()
-    expect_error(test_obj$beta <- 0, regexp = "'beta' is read-only")
-    expect_error(test_obj$epsilon <- "you", regexp = "'epsilon' is read-only")
-  }
-)
+test_that("make_active_field_wrapper() makes each wrapped field read-only", {
+  test_obj <- TestR6Class$new()
+  expect_error(test_obj$beta <- 0, regexp = "'beta' is read-only")
+  expect_error(test_obj$epsilon <- "you", regexp = "'epsilon' is read-only")
+})

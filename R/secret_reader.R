@@ -29,12 +29,15 @@ SecretReader <- R6::R6Class(
     initialize = function(current_env = Sys.getenv("DEPLOYMENT_ENV")) {
       self$current_env <- current_env
       private$.secret_path <- do.call(
-        file.path, list("myportfolio", self$current_env)
+        file.path,
+        list("myportfolio", self$current_env)
       )
       private$.vault_address <- Sys.getenv("VAULT_ADDRESS")
       private$.vault_token <- Sys.getenv("VAULT_TOKEN")
       private$.vault_url <- sprintf(
-        "%s/v1/secret/data/%s", private$.vault_address, private$.secret_path
+        "%s/v1/secret/data/%s",
+        private$.vault_address,
+        private$.secret_path
       )
     },
     #' @description
@@ -45,7 +48,7 @@ SecretReader <- R6::R6Class(
       raw_response <- httr2::request(private$.vault_url) %>%
         httr2::req_headers(
           "X-Vault-Token" = private$.vault_token,
-          "Content-Type"  = "application/json"
+          "Content-Type" = "application/json"
         ) %>%
         httr2::req_error(is_error = \(resp) FALSE) %>%
         httr2::req_perform()

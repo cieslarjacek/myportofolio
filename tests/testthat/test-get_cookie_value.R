@@ -39,12 +39,9 @@ test_that("get_cookie_value() throws argument type error - 'cookie_name", {
   expect_error(get_cookie_value("a=1", 123))
 })
 
-test_that(
-  "get_cookie_value() does not match a cookie name with a leading space",
-  {
-    expect_true(is.na(get_cookie_value(" a=1; b=2", "a")))
-  }
-)
+test_that("get_cookie_value() ignores cookie names with a leading space", {
+  expect_true(is.na(get_cookie_value(" a=1; b=2", "a")))
+})
 
 test_that("get_cookie_value() truncates a value that itself contains '='", {
   expect_equal(get_cookie_value("auth=abc=def", "auth"), "abc")

@@ -1,37 +1,34 @@
-test_that(
-  "make_sql_qualified_columns() returns an 'R6' 'ReactiveValuesManager' object",
-  {
-    test_db_schema <- list(
-      table_name1 = c("col1", "col2", "col3"),
-      table_name2 = c("col1", "col4")
-    )
-    updt_db_schema <- list(
-      table_name1 = c(
-        "table_name1.col1", "table_name1.col2", "table_name1.col3"
-      ),
-      table_name2 = c("table_name2.col1", "table_name2.col4")
-    )
+test_that("make_sql_qualified_columns() returns R6 'ReactiveValuesManager'", {
+  test_db_schema <- list(
+    table_name1 = c("col1", "col2", "col3"),
+    table_name2 = c("col1", "col4")
+  )
+  updt_db_schema <- list(
+    table_name1 = c(
+      "table_name1.col1",
+      "table_name1.col2",
+      "table_name1.col3"
+    ),
+    table_name2 = c("table_name2.col1", "table_name2.col4")
+  )
 
-    expect_equal(make_sql_qualified_columns(test_db_schema), updt_db_schema)
-  }
-)
+  expect_equal(make_sql_qualified_columns(test_db_schema), updt_db_schema)
+})
 
-test_that(
-  "make_sql_qualified_columns() throws argument type error - 'db_schema'",
-  {
-    error_msg <- "Assertion on 'db_schema' failed"
+test_that("make_sql_qualified_columns() errors on invalid 'db_schema' type", {
+  error_msg <- "Assertion on 'db_schema' failed"
 
-    expect_error(make_sql_qualified_columns(NULL), error_msg)
-    expect_error(make_sql_qualified_columns(list()), error_msg)
-    expect_error(make_sql_qualified_columns(list("a", "b")), error_msg)
-    expect_error(make_sql_qualified_columns(list(n1 = "a", "b")), error_msg)
-    expect_error(
-      make_sql_qualified_columns(list(n1 = "a", n2 = NULL)), error_msg
-    )
-  }
-)
+  expect_error(make_sql_qualified_columns(NULL), error_msg)
+  expect_error(make_sql_qualified_columns(list()), error_msg)
+  expect_error(make_sql_qualified_columns(list("a", "b")), error_msg)
+  expect_error(make_sql_qualified_columns(list(n1 = "a", "b")), error_msg)
+  expect_error(
+    make_sql_qualified_columns(list(n1 = "a", n2 = NULL)),
+    error_msg
+  )
+})
 
-test_that("new() returns an 'R6' 'ReactiveValuesManager' object", {
+test_that("new() returns an R6 'ReactiveValuesManager' object", {
   test_manager <- shiny::isolate(ReactiveValuesManager$new())
 
   expect_true(inherits(test_manager, "ReactiveValuesManager"))
@@ -52,49 +49,45 @@ test_that("init_objects contains the expected keys and elements", {
 
   expect_named(test_init_objects, names(get_reactive_values_init()))
   expect_equal(
-    sapply(test_init_objects, class), sapply(get_reactive_values_init(), class)
+    sapply(test_init_objects, class),
+    sapply(get_reactive_values_init(), class)
   )
 })
 
-test_that(
-  "get_init() returns correct initial object structure for 'reactiveValues'",
-  {
-    test_manager <- shiny::isolate(ReactiveValuesManager$new())
-    test_result <- test_manager$get_init("chart_active_data_range")
-    expect_mapequal(
-      shiny::isolate(shiny::reactiveValuesToList(test_result)),
-      list(
-        absolute = list(x = NULL, y = NULL), current = list(x = NULL, y = NULL)
-      )
+test_that("get_init() returns correct object structure for 'reactiveValues'", {
+  test_manager <- shiny::isolate(ReactiveValuesManager$new())
+  test_result <- test_manager$get_init("chart_active_data_range")
+  expect_mapequal(
+    shiny::isolate(shiny::reactiveValuesToList(test_result)),
+    list(
+      absolute = list(x = NULL, y = NULL),
+      current = list(x = NULL, y = NULL)
     )
+  )
 
+  test_manager <- shiny::isolate(ReactiveValuesManager$new())
+  test_result <- test_manager$get_init("map_click_registry")
+  expect_mapequal(
+    shiny::isolate(shiny::reactiveValuesToList(test_result)),
+    list(active = list(), add = list(), remove = list())
+  )
+})
+
+test_that("get_init() returns correct object structure for 'reactiveVal'", {
+  expected_init_values <- get_reactive_values_init() %>%
+    .[!names(.) %in% c("chart_active_data_range", "map_click_registry")]
+
+  for (test_name in names(expected_init_values)) {
     test_manager <- shiny::isolate(ReactiveValuesManager$new())
-    test_result <- test_manager$get_init("map_click_registry")
-    expect_mapequal(
-      shiny::isolate(shiny::reactiveValuesToList(test_result)),
-      list(active = list(), add = list(), remove = list())
+    test_result <- test_manager$get_init(test_name)
+
+    expect_s3_class(test_result, "reactiveVal")
+    expect_equal(
+      shiny::isolate(expected_init_values[[test_name]]()),
+      shiny::isolate(test_result())
     )
   }
-)
-
-test_that(
-  "get_init() returns correct initial object structure for 'reactiveVal'",
-  {
-    expected_init_values <- get_reactive_values_init() %>%
-      .[!names(.) %in% c("chart_active_data_range", "map_click_registry")]
-
-    for (test_name in names(expected_init_values)) {
-      test_manager <- shiny::isolate(ReactiveValuesManager$new())
-      test_result <- test_manager$get_init(test_name)
-
-      expect_s3_class(test_result, "reactiveVal")
-      expect_equal(
-        shiny::isolate(expected_init_values[[test_name]]()),
-        shiny::isolate(test_result())
-      )
-    }
-  }
-)
+})
 
 test_that("update() modifies 'table_aggregation_params' in a correct way", {
   test_manager <- shiny::isolate(ReactiveValuesManager$new())
@@ -134,7 +127,10 @@ test_that("update() modifies 'sql_db_schema' in a correct way", {
     shiny::isolate(test_result()),
     list(
       country = c(
-        "country.id", "country.name", "country.iso_a3", "country.label"
+        "country.id",
+        "country.name",
+        "country.iso_a3",
+        "country.label"
       ),
       world_geo = c("world_geo.country_id", "world_geo.geometry"),
       wb_wdi_sp_dyn_le00_in = c(
@@ -146,67 +142,62 @@ test_that("update() modifies 'sql_db_schema' in a correct way", {
   )
 })
 
-test_that(
-  "get_init() returns correct initial object structure for 'reactiveValues'",
-  {
-    test_manager <- shiny::isolate(ReactiveValuesManager$new())
-    test_result <- test_manager$get_init("chart_active_data_range")
-    shiny::isolate({
-      for (name in names(test_result)) {
-        test_result[[name]] <- list(x = "test_value", y = "test_value")
-      }
-    })
-    shiny::isolate({
-      for (name in names(test_result)) {
-        test_result[[name]] <- test_manager$reset("chart_active_data_range")
-      }
-    })
-    expect_mapequal(
-      shiny::isolate(shiny::reactiveValuesToList(test_result)),
-      list(
-        absolute = list(x = NULL, y = NULL), current = list(x = NULL, y = NULL)
-      )
-    )
-
-    test_manager <- shiny::isolate(ReactiveValuesManager$new())
-    test_result <- test_manager$get_init("map_click_registry")
-    shiny::isolate({
-      for (name in names(test_result)) {
-        test_result[[name]] <- "test_value"
-      }
-    })
-    shiny::isolate({
-      for (name in names(test_result)) {
-        test_result[[name]] <- test_manager$reset("map_click_registry")
-      }
-    })
-    expect_mapequal(
-      shiny::isolate(shiny::reactiveValuesToList(test_result)),
-      list(active = list(), add = list(), remove = list())
-    )
-  }
-)
-
-test_that(
-  "reset() returns correct initial object structure for 'reactiveVal'",
-  {
-    expected_reset_values <- get_reactive_values_reset() %>%
-      .[!names(.) %in% c("chart_active_data_range", "map_click_registry")]
-
-    for (test_name in names(expected_reset_values)) {
-      test_manager <- shiny::isolate(ReactiveValuesManager$new())
-      test_result <- test_manager$get_init(test_name)
-      test_result("test_value")
-      test_result(test_manager$reset(test_name))
-
-      expect_s3_class(test_result, "reactiveVal")
-      expect_equal(
-        shiny::isolate(expected_reset_values[[test_name]]),
-        shiny::isolate(test_result())
-      )
+test_that("get_init() returns correct object structure for 'reactiveValues'", {
+  test_manager <- shiny::isolate(ReactiveValuesManager$new())
+  test_result <- test_manager$get_init("chart_active_data_range")
+  shiny::isolate({
+    for (name in names(test_result)) {
+      test_result[[name]] <- list(x = "test_value", y = "test_value")
     }
+  })
+  shiny::isolate({
+    for (name in names(test_result)) {
+      test_result[[name]] <- test_manager$reset("chart_active_data_range")
+    }
+  })
+  expect_mapequal(
+    shiny::isolate(shiny::reactiveValuesToList(test_result)),
+    list(
+      absolute = list(x = NULL, y = NULL),
+      current = list(x = NULL, y = NULL)
+    )
+  )
+
+  test_manager <- shiny::isolate(ReactiveValuesManager$new())
+  test_result <- test_manager$get_init("map_click_registry")
+  shiny::isolate({
+    for (name in names(test_result)) {
+      test_result[[name]] <- "test_value"
+    }
+  })
+  shiny::isolate({
+    for (name in names(test_result)) {
+      test_result[[name]] <- test_manager$reset("map_click_registry")
+    }
+  })
+  expect_mapequal(
+    shiny::isolate(shiny::reactiveValuesToList(test_result)),
+    list(active = list(), add = list(), remove = list())
+  )
+})
+
+test_that("reset() returns correct object structure for 'reactiveVal'", {
+  expected_reset_values <- get_reactive_values_reset() %>%
+    .[!names(.) %in% c("chart_active_data_range", "map_click_registry")]
+
+  for (test_name in names(expected_reset_values)) {
+    test_manager <- shiny::isolate(ReactiveValuesManager$new())
+    test_result <- test_manager$get_init(test_name)
+    test_result("test_value")
+    test_result(test_manager$reset(test_name))
+
+    expect_s3_class(test_result, "reactiveVal")
+    expect_equal(
+      shiny::isolate(expected_reset_values[[test_name]]),
+      shiny::isolate(test_result())
+    )
   }
-)
+})
 
 test_that("remove_list_elem() returns correctly modified list", {
   test_list <- list(
@@ -228,7 +219,8 @@ test_that("remove_list_elem() throws argument type error - 'list_object'", {
   expect_error(remove_list_elem(list(), "name2"), error_msg)
   expect_error(remove_list_elem(list("a", "b"), "name2"), error_msg)
   expect_error(
-    remove_list_elem(list(name1 = NULL, name2 = 2), "name1"), error_msg
+    remove_list_elem(list(name1 = NULL, name2 = 2), "name1"),
+    error_msg
   )
 })
 
