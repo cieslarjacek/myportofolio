@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "Posit.air-vscode",
+        "ms-python.vscode-pylance",
+        "ms-python.python",
+        "ms-python.debugpy",
+        "ms-python.vscode-python-envs",
+        "reditorsupport.r",
+        "reditorsupport.r-syntax",
+        "ms-toolsai.jupyter"
+    ]
+}

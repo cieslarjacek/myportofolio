@@ -14,3 +14,4 @@
 ^scripts$
 ^\.github$
 ^docker-compose\.yaml$
+^[.]?air[.]toml$
