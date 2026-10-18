@@ -5,7 +5,8 @@ server <- function(input, output, session) {
   # Terminate the session on the session end.
   shiny::onSessionEnded(function() {
     app_logger$terminate_session(
-      session, myportfolio::get_storage_connection(app_secrets)
+      session,
+      myportfolio::get_storage_connection(app_secrets)
     )
   })
 

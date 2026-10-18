@@ -14,7 +14,9 @@ etl_page <- bslib::page_fluid(
   shiny::tags$h1(
     class = "page-title",
     shiny::tags$a(
-      class = "back-btn", href = "main#examples", "Back to Examples"
+      class = "back-btn",
+      href = "main#examples",
+      "Back to Examples"
     )
   ),
   # Body content.

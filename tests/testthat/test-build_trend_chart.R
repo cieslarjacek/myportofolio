@@ -8,17 +8,14 @@ test_that("make_download_file_name() creates correct name", {
   )
 })
 
-test_that(
-  "make_download_file_name() throws argument type error - 'name_root'",
-  {
-    error_msg <- "Assertion on 'name_root' failed"
+test_that("make_download_file_name() errors on invalid 'name_root' type", {
+  error_msg <- "Assertion on 'name_root' failed"
 
-    expect_error(make_download_file_name(numeric()), error_msg)
-    expect_error(make_download_file_name(logical()), error_msg)
-    expect_error(make_download_file_name(""), error_msg)
-    expect_error(make_download_file_name(NULL), error_msg)
-  }
-)
+  expect_error(make_download_file_name(numeric()), error_msg)
+  expect_error(make_download_file_name(logical()), error_msg)
+  expect_error(make_download_file_name(""), error_msg)
+  expect_error(make_download_file_name(NULL), error_msg)
+})
 
 test_that("extract_download_btn_click() returns correct button name", {
   new_test_clicks <- setNames(c(3, 2, 4), c("btn1", "btn2", "btn3"))
@@ -30,18 +27,15 @@ test_that("extract_download_btn_click() returns correct button name", {
   )
 })
 
-test_that(
-  "extract_download_btn_click() throws argument type error - 'click_set'",
-  {
-    error_msg <- "Assertion on 'click_set' failed"
+test_that("extract_download_btn_click() errors on invalid 'click_set' type", {
+  error_msg <- "Assertion on 'click_set' failed"
 
-    expect_error(extract_download_btn_click(c(1, 2)), error_msg)
-    expect_error(extract_download_btn_click(c("bt1", "btn2")), error_msg)
-    expect_error(extract_download_btn_click(list()), error_msg)
-    expect_error(extract_download_btn_click(list("a", "b", "c")), error_msg)
-    expect_error(extract_download_btn_click(list(c("a", "b", "c"))), error_msg)
-  }
-)
+  expect_error(extract_download_btn_click(c(1, 2)), error_msg)
+  expect_error(extract_download_btn_click(c("bt1", "btn2")), error_msg)
+  expect_error(extract_download_btn_click(list()), error_msg)
+  expect_error(extract_download_btn_click(list("a", "b", "c")), error_msg)
+  expect_error(extract_download_btn_click(list(c("a", "b", "c"))), error_msg)
+})
 
 test_that("make_chart_config() returns correct config data", {
   test_id <- "wb_wdi_si_dst_10th_10"
@@ -53,7 +47,8 @@ test_that("make_chart_config() returns correct config data", {
   )
 
   expect_equal(
-    make_chart_config(test_id, test_range), expected
+    make_chart_config(test_id, test_range),
+    expected
   )
 })
 
@@ -67,7 +62,8 @@ test_that("make_chart_color_theme() returns correct color data", {
   )
 
   expect_equal(
-    make_chart_color_theme(test_series_color, test_legend_color), expected
+    make_chart_color_theme(test_series_color, test_legend_color),
+    expected
   )
 })
 
@@ -81,7 +77,9 @@ test_that("build_trend_chart() creates right chart", {
   expect_equal(
     standarize_chart(
       build_trend_chart(
-        test_chart_dt_list, test_chart_color_theme, test_chart_config
+        test_chart_dt_list,
+        test_chart_color_theme,
+        test_chart_config
       )
     ),
     standarize_chart(expected)
@@ -101,13 +99,17 @@ test_that("build_trend_chart() throws argument type error - 'dt_list'", {
   )
   expect_error(
     build_trend_chart(
-      unname(test_chart_dt_list), test_chart_color_theme, test_chart_config
+      unname(test_chart_dt_list),
+      test_chart_color_theme,
+      test_chart_config
     ),
     error_msg
   )
   expect_error(
     build_trend_chart(
-      test_chart_color_theme, test_chart_color_theme, test_chart_config
+      test_chart_color_theme,
+      test_chart_color_theme,
+      test_chart_config
     ),
     error_msg
   )
@@ -126,31 +128,34 @@ test_that("build_trend_chart() throws argument type error - 'color_theme'", {
   )
   expect_error(
     build_trend_chart(
-      test_chart_dt_list, unname(test_chart_color_theme), test_chart_config
+      test_chart_dt_list,
+      unname(test_chart_color_theme),
+      test_chart_config
     ),
     error_msg
   )
   expect_error(
     build_trend_chart(
-      test_chart_dt_list, test_chart_dt_list, test_chart_config
+      test_chart_dt_list,
+      test_chart_dt_list,
+      test_chart_config
     ),
     error_msg
   )
 })
 
-test_that(
-  "build_trend_chart() throws argument type error - 'names(color_theme)'",
-  {
-    names(test_chart_color_theme) <- c("name1", "name2")
-    error_msg <- "Assertion on 'names\\(color_theme\\)' failed"
-    expect_error(
-      build_trend_chart(
-        test_chart_dt_list, test_chart_color_theme, test_chart_config
-      ),
-      error_msg
-    )
-  }
-)
+test_that("build_trend_chart() errors on invalid 'names(color_theme)' type", {
+  names(test_chart_color_theme) <- c("name1", "name2")
+  error_msg <- "Assertion on 'names\\(color_theme\\)' failed"
+  expect_error(
+    build_trend_chart(
+      test_chart_dt_list,
+      test_chart_color_theme,
+      test_chart_config
+    ),
+    error_msg
+  )
+})
 
 test_that("build_trend_chart() throws argument type error - 'layout_config'", {
   error_msg <- "Assertion on 'layout_config' failed"
@@ -165,29 +170,32 @@ test_that("build_trend_chart() throws argument type error - 'layout_config'", {
   )
   expect_error(
     build_trend_chart(
-      test_chart_dt_list, test_chart_color_theme, unname(test_chart_config)
+      test_chart_dt_list,
+      test_chart_color_theme,
+      unname(test_chart_config)
     ),
     error_msg
   )
   expect_error(
     build_trend_chart(
-      test_chart_dt_list, test_chart_color_theme, test_chart_dt_list
+      test_chart_dt_list,
+      test_chart_color_theme,
+      test_chart_dt_list
     ),
     error_msg
   )
 })
 
-test_that(
-  "build_trend_chart() throws argument type error - 'names(layout_config)'",
-  {
-    error_msg <- "Assertion on 'names\\(layout_config\\)' failed"
+test_that("build_trend_chart() errors on invalid 'names(layout_config)' type", {
+  error_msg <- "Assertion on 'names\\(layout_config\\)' failed"
 
-    names(test_chart_config) <- c("name1", "name2")
-    expect_error(
-      build_trend_chart(
-        test_chart_dt_list, test_chart_color_theme, test_chart_config
-      ),
-      error_msg
-    )
-  }
-)
+  names(test_chart_config) <- c("name1", "name2")
+  expect_error(
+    build_trend_chart(
+      test_chart_dt_list,
+      test_chart_color_theme,
+      test_chart_config
+    ),
+    error_msg
+  )
+})

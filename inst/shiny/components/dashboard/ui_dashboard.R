@@ -22,7 +22,9 @@ dashboard_page <- bslib::page_fluid(
   shiny::tags$h1(
     class = "page-title",
     shiny::tags$a(
-      class = "back-btn", href = "main#examples", "Back to Examples"
+      class = "back-btn",
+      href = "main#examples",
+      "Back to Examples"
     )
   ),
   # Body content.
@@ -119,7 +121,8 @@ dashboard_page <- bslib::page_fluid(
   # Body footer.
   shiny::tags$footer(
     shiny::tags$div(
-      class = "copr-text", myportfolio::create_copyright_note()
+      class = "copr-text",
+      myportfolio::create_copyright_note()
     )
   ),
   shiny::tags$script(src = "js/dashboard_events.js")

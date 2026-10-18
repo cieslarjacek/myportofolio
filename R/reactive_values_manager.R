@@ -20,12 +20,15 @@ NULL
 make_sql_qualified_columns <- function(db_schema) {
   checkmate::assert_list(
     db_schema,
-    names = "named", any.missing = FALSE, all.missing = FALSE
+    names = "named",
+    any.missing = FALSE,
+    all.missing = FALSE
   )
 
   for (table_name in names(db_schema)) {
     db_schema[[table_name]] <- paste(
-      table_name, db_schema[[table_name]],
+      table_name,
+      db_schema[[table_name]],
       sep = "."
     )
   }
@@ -103,7 +106,8 @@ get_reactive_values_init <- function(app_settings = get_app_settings()) {
     ),
     chart_export_btn_click = shiny::reactiveVal(
       setNames(
-        rep(0, length(aux_export_types)), aux_export_types
+        rep(0, length(aux_export_types)),
+        aux_export_types
       )
     ),
     chart_with_one_trace = shiny::reactiveVal(),
@@ -111,7 +115,9 @@ get_reactive_values_init <- function(app_settings = get_app_settings()) {
       app_settings$color_palette$category
     ),
     map_click_registry = shiny::reactiveValues(
-      active = list(), add = list(), remove = list()
+      active = list(),
+      add = list(),
+      remove = list()
     ),
     sql_db_schema = shiny::reactiveVal(),
     table_aggregation_params = shiny::reactiveVal(),
@@ -144,7 +150,8 @@ get_reactive_values_reset <- function(app_settings = get_app_settings()) {
     chart_active_data = list(),
     chart_active_data_range = list(x = NULL, y = NULL),
     chart_export_btn_click = setNames(
-      rep(0, length(aux_export_types)), aux_export_types
+      rep(0, length(aux_export_types)),
+      aux_export_types
     ),
     chart_with_one_trace = NULL,
     map_available_color = app_settings$color_palette$category,
@@ -276,7 +283,9 @@ update_db_schema <- function(
 
     if (!is_empty(aux_value)) {
       db_schema[[aux_value]] <- gsub(
-        aux_name, aux_value, db_schema[[aux_name]]
+        aux_name,
+        aux_value,
+        db_schema[[aux_name]]
       )
     }
     db_schema[[aux_name]] <- NULL
@@ -314,7 +323,9 @@ update_aggregation_specs <- function(
 remove_list_elem <- function(list_object, elem_name) {
   checkmate::assert_list(
     list_object,
-    any.missing = FALSE, all.missing = FALSE, names = "unique"
+    any.missing = FALSE,
+    all.missing = FALSE,
+    names = "unique"
   )
   checkmate::assert_string(elem_name)
 

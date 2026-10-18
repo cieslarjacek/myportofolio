@@ -79,7 +79,8 @@ get_series_args <- function(dt_list, series_color) {
 #' @rdname build_trend_chart
 add_series <- function(chart, dt_list, series_color) {
   do.call(
-    plotly::add_trace, c(list(chart), get_series_args(dt_list, series_color))
+    plotly::add_trace,
+    c(list(chart), get_series_args(dt_list, series_color))
   )
 }
 
@@ -110,7 +111,9 @@ add_layout <- function(chart, layout_config, legend_color) {
       y = 1
     ),
     xaxis = list(
-      title = "Year", dtick = 2, tickmode = "linear",
+      title = "Year",
+      dtick = 2,
+      tickmode = "linear",
       rangeslider = list(visible = TRUE)
     ),
     yaxis = list(
@@ -161,7 +164,8 @@ set_plotly_remove_btns <- function() {
 #'   and legend.
 #' @export
 make_chart_color_theme <- function(
-  series_color, legend_color = set_color_palette()$transparent
+  series_color,
+  legend_color = set_color_palette()$transparent
 ) {
   list(
     series = series_color,
@@ -239,7 +243,8 @@ extract_download_btn_click <- function(click_set) {
 #' @examples
 #' make_download_file_name("Unemployment (%, 15 yo and over, modeled)")
 make_download_file_name <- function(
-  name_root, name_prefix = format(Sys.Date(), "%Y%m%d")
+  name_root,
+  name_prefix = format(Sys.Date(), "%Y%m%d")
 ) {
   checkmate::assert_string(name_root, min.chars = 1)
   paste0(name_prefix, "_", str_to_underscore_case(name_root))

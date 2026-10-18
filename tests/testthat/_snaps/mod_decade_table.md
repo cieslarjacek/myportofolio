@@ -12,4 +12,3 @@
           <div id="x-table_output" class="shiny-html-output"></div>
         </div>
       </div>
-

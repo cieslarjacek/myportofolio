@@ -110,7 +110,8 @@ get_storage_connection <- function(secrets) {
 
   list(
     bucket = paste(
-      Sys.getenv("APP_NAME"), Sys.getenv("DEPLOYMENT_ENV"),
+      Sys.getenv("APP_NAME"),
+      Sys.getenv("DEPLOYMENT_ENV"),
       sep = "-"
     ),
     key = secrets[["MINIO_ACCESS_KEY"]],

@@ -1,7 +1,9 @@
 main_page <- shiny::fluidPage(
   shiny::tags$head(
     shiny::tags$link(
-      rel = "stylesheet", type = "text/css", href = "css/styles_main.css"
+      rel = "stylesheet",
+      type = "text/css",
+      href = "css/styles_main.css"
     ),
     shiny::tags$script(src = "js/visit_temp_id.js"),
     shiny::tags$title(paste("Homepage - Jacek Dev", format(Sys.Date(), "%Y")))
@@ -99,7 +101,8 @@ main_page <- shiny::fluidPage(
         )
       ),
       shiny::tags$div(
-        id = "copr-text-main", myportfolio::create_copyright_note()
+        id = "copr-text-main",
+        myportfolio::create_copyright_note()
       )
     )
   )

@@ -71,13 +71,14 @@ test_that("select_page() throws argument type error - 'default_ui'", {
 
 test_that("route_page() returns expected page based on the provided path", {
   test_route_schema <- list(
-    "/"      = shiny::tags$div("Home"),
+    "/" = shiny::tags$div("Home"),
     "/about" = shiny::tags$div("About")
   )
   test_handler <- route_page(test_route_schema)
 
   expect_equal(
-    test_handler(list(PATH_INFO = "/about")), shiny::tags$div("About")
+    test_handler(list(PATH_INFO = "/about")),
+    shiny::tags$div("About")
   )
   expect_equal(test_handler(list(PATH_INFO = "/")), shiny::tags$div("Home"))
   expect_equal(test_handler(list(PATH_INFO = "/dummy")), "404 Not Found")
@@ -85,7 +86,7 @@ test_that("route_page() returns expected page based on the provided path", {
 
 test_that("route_page() throws argument type error - 'url_path'", {
   test_route_schema <- list(
-    "/"      = shiny::tags$div("Home"),
+    "/" = shiny::tags$div("Home"),
     "/about" = shiny::tags$div("About")
   )
   test_handler <- route_page(test_route_schema)

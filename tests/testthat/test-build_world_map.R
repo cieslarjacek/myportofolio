@@ -19,68 +19,71 @@ test_that("build_world_map() creates right map", {
     add_bounds() %>%
     add_view() %>%
     add_clickable_polygons(
-      test_data_list$clickable, test_map_color_theme$clickable
+      test_data_list$clickable,
+      test_map_color_theme$clickable
     ) %>%
     add_notclickable_polygons(
-      test_data_list$notclickable, test_map_color_theme$notclickable
+      test_data_list$notclickable,
+      test_map_color_theme$notclickable
     ) %>%
     add_reset_button()
 
   expect_equal(
-    build_world_map(test_data_list, test_map_color_theme), expected
+    build_world_map(test_data_list, test_map_color_theme),
+    expected
   )
 })
 
-test_that("build_world_map() throws argument type error - 'data_list'",
-  {
-    error_msg <- "Assertion on 'data_list' failed"
+test_that("build_world_map() throws argument type error - 'data_list'", {
+  error_msg <- "Assertion on 'data_list' failed"
 
-    expect_error(
-      build_world_map(c(1, 2), test_map_color_theme), error_msg
-    )
-    expect_error(
-      build_world_map(list(), test_map_color_theme), error_msg
-    )
-    expect_error(
-      build_world_map(NULL, test_map_color_theme), error_msg
-    )
-  }
-)
+  expect_error(
+    build_world_map(c(1, 2), test_map_color_theme),
+    error_msg
+  )
+  expect_error(
+    build_world_map(list(), test_map_color_theme),
+    error_msg
+  )
+  expect_error(
+    build_world_map(NULL, test_map_color_theme),
+    error_msg
+  )
+})
 
-test_that("build_world_map() throws argument type error - 'names(data_list)'",
-  {
-    error_msg <- "Assertion on 'names\\(data_list\\)' failed"
+test_that("build_world_map() throws argument type error - 'names(data_list)'", {
+  error_msg <- "Assertion on 'names\\(data_list\\)' failed"
 
-    names(test_data_list) <- c("name1", "name2")
-    expect_error(
-      build_world_map(test_data_list, test_map_color_theme), error_msg
-    )
-  }
-)
+  names(test_data_list) <- c("name1", "name2")
+  expect_error(
+    build_world_map(test_data_list, test_map_color_theme),
+    error_msg
+  )
+})
 
-test_that("build_world_map() throws argument type error - 'color_theme'",
-  {
-    error_msg <- "Assertion on 'color_theme' failed"
+test_that("build_world_map() throws argument type error - 'color_theme'", {
+  error_msg <- "Assertion on 'color_theme' failed"
 
-    expect_error(
-      build_world_map(test_data_list, c(1, 2)), error_msg
-    )
-    expect_error(
-      build_world_map(test_data_list, list()), error_msg
-    )
-    expect_error(
-      build_world_map(test_data_list, NULL), error_msg
-    )
-  }
-)
+  expect_error(
+    build_world_map(test_data_list, c(1, 2)),
+    error_msg
+  )
+  expect_error(
+    build_world_map(test_data_list, list()),
+    error_msg
+  )
+  expect_error(
+    build_world_map(test_data_list, NULL),
+    error_msg
+  )
+})
 
-test_that("build_world_map() throws argument type error - 'names(color_theme)'",
-  {
-    error_msg <- "Assertion on 'names\\(color_theme\\)' failed"
+test_that("build_world_map() errors on invalid 'names(color_theme)' type", {
+  error_msg <- "Assertion on 'names\\(color_theme\\)' failed"
 
-    names(test_map_color_theme) <- c("name1", "name2")
-    expect_error(
-      build_world_map(test_data_list, test_map_color_theme), error_msg
-    )
-  }
-)
+  names(test_map_color_theme) <- c("name1", "name2")
+  expect_error(
+    build_world_map(test_data_list, test_map_color_theme),
+    error_msg
+  )
+})

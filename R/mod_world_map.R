@@ -17,7 +17,9 @@ worldMapUI <- function(id) {
 worldMapServer <- function(id, indic_id, data_pair) {
   assert_reactive(indic_id)
   assert_with(
-    checkmate::assert_vector, data_pair, assert_len2_args()
+    checkmate::assert_vector,
+    data_pair,
+    assert_len2_args()
   )
 
   invisible(lapply(data_pair[1:2], assert_reactive))

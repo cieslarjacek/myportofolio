@@ -35,7 +35,9 @@ add_default_spinner <- function(
 #' @return The modified widget object.
 #' @export
 add_js_code <- function(
-  htmlwidget_object, id, js_code = get_js_event(id)
+  htmlwidget_object,
+  id,
+  js_code = get_js_event(id)
 ) {
   checkmate::assert_character(js_code)
   htmlwidgets::onRender(htmlwidget_object, js_code)
@@ -47,7 +49,8 @@ add_js_code <- function(
 #'
 #' @rdname add_js_code
 get_js_event <- function(id) {
-  switch(id,
+  switch(
+    id,
     `world_trends-map` = "function(el, x) { window.renderEvents.worldTrendsMap.call(window.renderEvents, el, x); }",
     `world_trends-chart` = "function(el, x) { window.renderEvents.worldTrendsChart.call(window.renderEvents, el, x); }",
     `world_trends-table_content` = "function(el, x) { window.renderEvents.worldTrendsTable.call(window.renderEvents, el, x); }"
@@ -72,7 +75,8 @@ run_validate_need <- function(
   message = set_validation_message(output_id)
 ) {
   shiny::validate(shiny::need(
-    expression, shiny::HTML(message)
+    expression,
+    shiny::HTML(message)
   ))
 }
 
@@ -82,7 +86,8 @@ run_validate_need <- function(
 #'
 #' @rdname run_validate_need
 set_validation_message <- function(output_id) {
-  switch(output_id,
+  switch(
+    output_id,
     `world_trends-map` = c(
       "Please use the dropdown menu above to browser ",
       "and select the indicator that you are interested in.",

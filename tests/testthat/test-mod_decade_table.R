@@ -4,7 +4,8 @@ test_that("decadeTableUI() creates expected HTML", {
 
 test_that("decadeTableServer() rejects a non-reactiveVal 'render_flag'", {
   expect_error(
-    decadeTableServer("test",
+    decadeTableServer(
+      "test",
       render_flag = TRUE,
       aggregation_input = make_test_aggregation_input()
     ),
@@ -14,31 +15,33 @@ test_that("decadeTableServer() rejects a non-reactiveVal 'render_flag'", {
 
 test_that("decadeTableServer() rejects 'aggregation_input' with wrong length", {
   expect_error(
-    decadeTableServer("test",
+    decadeTableServer(
+      "test",
       render_flag = shiny::reactiveVal(TRUE),
       aggregation_input = list(
-        shiny::reactiveVal(NULL), shiny::reactiveVal(NULL)
+        shiny::reactiveVal(NULL),
+        shiny::reactiveVal(NULL)
       )
     ),
     "Assertion on 'aggregation_input' failed:"
   )
 })
 
-test_that(
-  "decadeTableServer() rejects non-reactiveVal elements in 'aggregation_input'",
-  {
-    expect_error(
-      decadeTableServer("test",
-        render_flag = shiny::reactiveVal(TRUE),
-        aggregation_input = list(
-          shiny::reactiveVal(NULL), "not_reactive", shiny::reactiveVal(NULL)
-        )
-      ),
-      "Assertion on 'X[[i]]' failed",
-      fixed = TRUE
-    )
-  }
-)
+test_that("decadeTableServer() rejects non-reactiveVal 'aggregation_input'", {
+  expect_error(
+    decadeTableServer(
+      "test",
+      render_flag = shiny::reactiveVal(TRUE),
+      aggregation_input = list(
+        shiny::reactiveVal(NULL),
+        "not_reactive",
+        shiny::reactiveVal(NULL)
+      )
+    ),
+    "Assertion on 'X[[i]]' failed",
+    fixed = TRUE
+  )
+})
 
 test_that("'table_description' renders when 'render_flag' is TRUE", {
   shiny::testServer(
@@ -124,7 +127,7 @@ test_that("'table_content' skips 'source_weight' when weight data is empty", {
   shiny::testServer(
     decadeTableServer,
     args = list(
-      render_flag       = shiny::reactiveVal(TRUE),
+      render_flag = shiny::reactiveVal(TRUE),
       aggregation_input = agg_input
     ),
     {
@@ -154,9 +157,12 @@ test_that("'table_content' calls 'source_weight' when weight data is present", {
     },
     build_decade_table = function(decade_dt) "table_stub",
     add_js_code = function(table, name) {
-      structure(list(
-        x = list(table = table, name = name)
-      ), class = c("datatables", "htmlwidget"))
+      structure(
+        list(
+          x = list(table = table, name = name)
+        ),
+        class = c("datatables", "htmlwidget")
+      )
     }
   )
 
@@ -183,34 +189,32 @@ test_that("'table_content' calls 'source_weight' when weight data is present", {
   )
 })
 
-test_that(
-  "get_table_description() returns a character vector for every function name",
-  {
-    for (
-      func_name in c("max", "mean", "geometric.mean", "weighted.mean", "none")
-    ) {
-      expect_type(get_table_description(func_name), "character")
-    }
+test_that("get_table_description() returns char vector per function name", {
+  for (func_name in c(
+    "max",
+    "mean",
+    "geometric.mean",
+    "weighted.mean",
+    "none"
+  )) {
+    expect_type(get_table_description(func_name), "character")
   }
-)
+})
 
-test_that(
-  "get_table_description() returns content matching the aggregation function",
-  {
-    expect_true(
-      any(grepl("final year", get_table_description("max")))
-    )
-    expect_true(
-      any(grepl("arithmetic mean", get_table_description("mean")))
-    )
-    expect_true(
-      any(grepl("geometric mean", get_table_description("geometric.mean")))
-    )
-    expect_true(
-      any(grepl("weighted mean", get_table_description("weighted.mean")))
-    )
-    expect_true(
-      any(grepl("not available", get_table_description("none")))
-    )
-  }
-)
+test_that("get_table_description() returns content matching the agg function", {
+  expect_true(
+    any(grepl("final year", get_table_description("max")))
+  )
+  expect_true(
+    any(grepl("arithmetic mean", get_table_description("mean")))
+  )
+  expect_true(
+    any(grepl("geometric mean", get_table_description("geometric.mean")))
+  )
+  expect_true(
+    any(grepl("weighted mean", get_table_description("weighted.mean")))
+  )
+  expect_true(
+    any(grepl("not available", get_table_description("none")))
+  )
+})

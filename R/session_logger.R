@@ -42,11 +42,13 @@ SessionLogger <- R6::R6Class(
     initialize = function() {
       private$.time_stamp <- format(
         Sys.time(),
-        tz = "Europe/Madrid", format = "%Y%m%d_%H%M%S"
+        tz = "Europe/Madrid",
+        format = "%Y%m%d_%H%M%S"
       )
       private$.log_file_name <- sprintf("%s.log", private$.time_stamp)
       private$.log_file_path <- file.path(
-        private$.log_file_dir, private$.log_file_name
+        private$.log_file_dir,
+        private$.log_file_name
       )
       private$.current_session_token <- list()
     },
@@ -159,8 +161,12 @@ SessionLogger <- R6::R6Class(
   ),
   active = make_active_field_wrapper(
     c(
-      "time_stamp", "log_file_dir", "log_file_name", "log_file_path",
-      "log_file_con", "current_session_token"
+      "time_stamp",
+      "log_file_dir",
+      "log_file_name",
+      "log_file_path",
+      "log_file_con",
+      "current_session_token"
     )
   )
 )

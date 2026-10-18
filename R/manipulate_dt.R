@@ -115,7 +115,8 @@ convert_dt_to_string <- function(data_object) {
 
   capture.output(
     write.csv(dt, row.names = FALSE, na = "", quote = TRUE)
-  ) %>% paste(collapse = "\n")
+  ) %>%
+    paste(collapse = "\n")
 }
 
 #' @rdname convert_dt_to_string
@@ -124,7 +125,11 @@ convert_dt_to_json <- function(data_object) {
   dt <- try_coerce_to_dt(data_object)
 
   jsonlite::toJSON(
-    dt, dataframe = "rows", pretty = FALSE, auto_unbox = TRUE, na = "null"
+    dt,
+    dataframe = "rows",
+    pretty = FALSE,
+    auto_unbox = TRUE,
+    na = "null"
   )
 }
 
@@ -150,10 +155,15 @@ source_weight <- function(data_pair) {
     identical.to = names(data_pair[[2]])
   )
 
-  mapply(function(dt1, dt2) {
-    data.table::setnames(dt2, "value", "weight")
-    dt1[dt2, on = .(country_id, time_period), nomatch = 0]
-  }, data_pair[[1]], data_pair[[2]], SIMPLIFY = FALSE)
+  mapply(
+    function(dt1, dt2) {
+      data.table::setnames(dt2, "value", "weight")
+      dt1[dt2, on = .(country_id, time_period), nomatch = 0]
+    },
+    data_pair[[1]],
+    data_pair[[2]],
+    SIMPLIFY = FALSE
+  )
 }
 
 #' Create and apply an aggregation strategy
@@ -192,13 +202,16 @@ get_decade_aggregator <- function(aggregation_params) {
   aux_func <- match.fun(aggregation_params$function_name)
   aux_col <- aggregation_params$column_name
 
-  switch(aggregation_params$function_name,
+  switch(
+    aggregation_params$function_name,
     max = {
       function(data_table) {
         data_table[,
-          .(value = value[
-            get(aux_col) == aux_func(get(aux_col), na.rm = TRUE)
-          ]),
+          .(
+            value = value[
+              get(aux_col) == aux_func(get(aux_col), na.rm = TRUE)
+            ]
+          ),
           by = .(Decade, country_id)
         ]
       }

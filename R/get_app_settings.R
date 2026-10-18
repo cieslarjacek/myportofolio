@@ -67,7 +67,11 @@ set_color_palette <- function() {
     neutral = "grey",
     transparent = "rgba(0,0,0,0)",
     category = c(
-      "#1858bbff", "#0a8d91ff", "#4eae3eff", "#fdc10fff", "#e63831ff"
+      "#1858bbff",
+      "#0a8d91ff",
+      "#4eae3eff",
+      "#fdc10fff",
+      "#e63831ff"
     ),
     empty = NULL
   )
@@ -96,7 +100,8 @@ set_db_schema_registry <- function() {
 #' @rdname get_app_settings
 set_export_types <- function() {
   setNames(
-    c("PNG image", "CSV data", "JSON data"), c("png", "csv", "json")
+    c("PNG image", "CSV data", "JSON data"),
+    c("png", "csv", "json")
   )
 }
 
@@ -121,8 +126,14 @@ set_name_id_indicators <- function() {
 #' @rdname get_app_settings
 set_secret_names <- function() {
   c(
-    "MINIO_ACCESS_KEY", "MINIO_ENDPOINT", "MINIO_SECRET_KEY",
-    "DB_HOST", "DB_NAME", "DB_PORT", "DB_PW", "DB_USERNAME"
+    "MINIO_ACCESS_KEY",
+    "MINIO_ENDPOINT",
+    "MINIO_SECRET_KEY",
+    "DB_HOST",
+    "DB_NAME",
+    "DB_PORT",
+    "DB_PW",
+    "DB_USERNAME"
   )
 }
 
@@ -132,14 +143,30 @@ set_id_aggr_indicators <- function() {
     wb_wdi_sp_pop_totl = set_aggr_config("max", "time_period"),
     wb_wdi_sp_pop_0014_to = set_aggr_config("max", "time_period"),
     wb_wdi_ny_gdp_mktp_cd = set_aggr_config("mean", "value"),
-    wb_wdi_ny_gdp_pcap_cd = set_aggr_config("weighted.mean", "value", "wb_wdi_sp_pop_totl"),
+    wb_wdi_ny_gdp_pcap_cd = set_aggr_config(
+      "weighted.mean",
+      "value",
+      "wb_wdi_sp_pop_totl"
+    ),
     wb_wdi_ny_gdp_mktp_pp_cd = set_aggr_config("none", NULL),
     wb_wdi_fp_cpi_totl_zg = set_aggr_config("geometric.mean", "value"),
     wb_wdi_sp_dyn_le00_in = set_aggr_config("mean", "value"),
-    wb_gs_sl_uem_zs = set_aggr_config("weighted.mean", "value", "wb_wdi_sp_pop_15up_to"),
+    wb_gs_sl_uem_zs = set_aggr_config(
+      "weighted.mean",
+      "value",
+      "wb_wdi_sp_pop_15up_to"
+    ),
     wb_wdi_si_dst_10th_10 = set_aggr_config("none", NULL),
-    wb_wdi_sh_med_phys_zs = set_aggr_config("weighted.mean", "value", "wb_wdi_sp_pop_totl"),
-    wb_wdi_sh_med_numw_p3 = set_aggr_config("weighted.mean", "value", "wb_wdi_sp_pop_totl"),
+    wb_wdi_sh_med_phys_zs = set_aggr_config(
+      "weighted.mean",
+      "value",
+      "wb_wdi_sp_pop_totl"
+    ),
+    wb_wdi_sh_med_numw_p3 = set_aggr_config(
+      "weighted.mean",
+      "value",
+      "wb_wdi_sp_pop_totl"
+    ),
     wb_wdi_sp_dyn_imrt_in = set_aggr_config("none", NULL)
   )
 }

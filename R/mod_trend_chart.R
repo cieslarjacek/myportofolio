@@ -45,9 +45,12 @@ trendChartServer <- function(id, render_flag, base_chart) {
 updtTrendChartYaxisServer <- function(id, new_yrange) {
   shiny::moduleServer(id, function(input, output, session) {
     plotly::plotlyProxy("chart", session) %>%
-      plotly::plotlyProxyInvoke("relayout", list(
-        yaxis = list(range = make_yrange(new_yrange))
-      ))
+      plotly::plotlyProxyInvoke(
+        "relayout",
+        list(
+          yaxis = list(range = make_yrange(new_yrange))
+        )
+      )
   })
 }
 
@@ -55,13 +58,17 @@ updtTrendChartYaxisServer <- function(id, new_yrange) {
 #' @export
 addTrendChartSeriesServer <- function(id, new_series, new_yrange) {
   assert_with(
-    checkmate::assert_vector, new_series, assert_len2_args()
+    checkmate::assert_vector,
+    new_series,
+    assert_len2_args()
   )
 
   shiny::moduleServer(id, function(input, output, session) {
     updtTrendChartYaxisServer(NULL, new_yrange) %>%
       plotly::plotlyProxyInvoke(
-        ., "addTraces", get_series_args(new_series$dt_list, new_series$color)
+        .,
+        "addTraces",
+        get_series_args(new_series$dt_list, new_series$color)
       )
   })
 }
@@ -104,11 +111,17 @@ trendChartExportBtnServer <- function(id, export_types = set_export_types()) {
         status = "primary",
         shiny::div(
           class = shiny::NS(id, "chart_export_list"),
-          mapply(function(elem_value, elem_name) {
-            shiny::actionLink(
-              shiny::NS(id, paste0("chart_download_", elem_name)), elem_value
-            )
-          }, export_types, names(export_types), SIMPLIFY = FALSE)
+          mapply(
+            function(elem_value, elem_name) {
+              shiny::actionLink(
+                shiny::NS(id, paste0("chart_download_", elem_name)),
+                elem_value
+              )
+            },
+            export_types,
+            names(export_types),
+            SIMPLIFY = FALSE
+          )
         )
       )
     })

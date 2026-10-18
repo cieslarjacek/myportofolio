@@ -18,7 +18,9 @@
 #' @export
 make_xrange <- function(initial_range) {
   assert_with(
-    checkmate::assert_numeric, initial_range, assert_len2_args()
+    checkmate::assert_numeric,
+    initial_range,
+    assert_len2_args()
   )
 
   c(ceiling(initial_range[1]), floor(initial_range[2]))
@@ -28,7 +30,9 @@ make_xrange <- function(initial_range) {
 #' @export
 make_yrange <- function(initial_range) {
   assert_with(
-    checkmate::assert_numeric, initial_range, assert_len2_args()
+    checkmate::assert_numeric,
+    initial_range,
+    assert_len2_args()
   )
 
   ypadding <- calculate_yrange_padding(initial_range)
@@ -59,7 +63,9 @@ calculate_yrange_padding <- function(initial_range) {
 select_range <- function(range_pair) {
   checkmate::assert_list(
     range_pair,
-    len = 2, all.missing = FALSE, unique = TRUE
+    len = 2,
+    all.missing = FALSE,
+    unique = TRUE
   )
 
   if (!is_empty(range_pair[[1]])) {

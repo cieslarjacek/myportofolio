@@ -29,7 +29,9 @@ decadeTableUI <- function(id) {
 decadeTableServer <- function(id, render_flag, aggregation_input) {
   assert_reactiveval(render_flag)
   assert_with(
-    checkmate::assert_vector, aggregation_input, c(list(len = 3), assert_args())
+    checkmate::assert_vector,
+    aggregation_input,
+    c(list(len = 3), assert_args())
   )
   invisible(lapply(aggregation_input[1:3], assert_reactiveval))
 
@@ -90,7 +92,8 @@ decadeTableServer <- function(id, render_flag, aggregation_input) {
 #' @rdname decadeTableUI
 get_table_description <- function(func_name) {
   # TODO: EXTRACT REPEATED STRINGS.
-  switch(func_name,
+  switch(
+    func_name,
     max = c(
       "<br><p>The table presents yearly indicator data aggregated by decade.</p>",
       "<p>The calculations are based on the indicator values from the",
