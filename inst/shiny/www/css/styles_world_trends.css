@@ -55,7 +55,6 @@
     font-size: var(--fs-bs-btn) !important;
     font-weight: var(--fw-bs-body);
     padding: calc(var(--ms-y-min) * 0.5) var(--ms-y-min);
-    color: var(--fs-bs-btn);
     text-decoration: none !important;
     cursor: pointer;
     white-space: nowrap;
