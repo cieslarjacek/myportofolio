@@ -7,8 +7,8 @@
 .page-title {
   background-color: var(--clr-primary);
   border-radius: 3px;
-  padding:
-    clamp(var(--ps-y-min), var(--ps-y-base), var(--ps-y-max)) clamp(var(--ps-x-min), var(--ps-x-base), var(--ps-x-max));
+  padding: clamp(var(--ms-y-min), var(--ms-y-base), var(--ms-y-max))
+    clamp(var(--ms-x-min), var(--ms-x-base), var(--ms-x-max));
 }
 
 .back-btn {

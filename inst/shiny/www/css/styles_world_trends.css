@@ -28,7 +28,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: var(--ps-y-min);
+    gap: var(--ms-y-min);
     width: 100%;
     padding-top: 0.172rem;
     padding-bottom: 0.172rem;
@@ -43,7 +43,7 @@
 }
 
 #world_trends-chart_export_btn {
-    padding: calc(var(--ps-y-min) * 0.5) var(--ps-y-min);
+    padding: calc(var(--ms-y-min) * 0.5) var(--ms-y-min);
 }
 
 #dropdown-menu-world_trends-chart_export_btn {
@@ -54,7 +54,7 @@
     display: block;
     font-size: var(--fs-bs-btn) !important;
     font-weight: var(--fw-bs-body);
-    padding: calc(var(--ps-y-min) * 0.5) var(--ps-y-min);
+    padding: calc(var(--ms-y-min) * 0.5) var(--ms-y-min);
     color: var(--fs-bs-btn);
     text-decoration: none !important;
     cursor: pointer;

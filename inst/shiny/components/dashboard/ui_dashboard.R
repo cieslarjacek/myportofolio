@@ -72,7 +72,7 @@ dashboard_page <- bslib::page_fluid(
           bslib::card(
             bslib::card_header("Map"),
             bslib::card_body(
-              add_default_spinner(
+              myportfolio::add_default_spinner(
                 myportfolio::worldMapUI("world_trends")
               )
             )
