@@ -1,11 +1,16 @@
 {
+    "[css]": {
+        "editor.defaultFormatter": "sibiraj-s.vscode-scss-formatter",
+        "editor.formatOnSave": true,
+    },
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
         "editor.rulers": [72, 79]
     },
     "[quarto]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "Posit.air-vscode"
+        "editor.defaultFormatter": "Posit.air-vscode",
+        "editor.formatOnSave": true
     },
     "[r]": {
         "editor.defaultFormatter": "Posit.air-vscode",
