@@ -1,6 +1,6 @@
 Package: myportfolio
 Title: My Portfolio App
-Version: 0.0.0.9001
+Version: 0.0.0.9002
 Authors@R: 
     person("Jacek", "Cieslar", , "contact@jacekdev.com", role = c("aut", "cre"))
 Description: Functions and classes to make the app run easier.
@@ -46,6 +46,7 @@ Collate:
     'make_active_field.R'
     'db_data_extractor.R'
     'get_app_settings.R'
+    'get_section_text.R'
     'make_range.R'
     'manage_components.R'
     'manipulate_dt.R'
