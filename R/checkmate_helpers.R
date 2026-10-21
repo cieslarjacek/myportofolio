@@ -1,5 +1,28 @@
 #' A collection of helper functions for \pkg{checkmate}
 #'
+#' @details
+#' This a collection of helper functions for for \pkg{checkmate}. Most of them
+#' exist in pairs - `check` and `assert`.
+#' * `check` - returns `TRUE` when the check pass and the error message
+#' (as a string) when the check fails.
+#' * `assert` - returns checked object when the assertion pass and throws
+#' an exception and stops execution (stop()) when the assertion fails.
+#'
+#' More details about them:
+#' * `_with` - run a relevant assertion or check function (e.g. `assert_list()`)
+#' on target object (e.g. other function argument) with a given list of
+#' arguments (e.g. `list(any.missing = FALSE, unique = TRUE)`).
+#' * `_args` - a list of common arguments with default values.
+#' * `_named_args` - a list of arguments for named lists or vectors.
+#' * `_len2_args` - a list of arguments for lists or vectors of length two.
+#' * `_character_args` - a list of arguments for character vectors.
+#' * `_named_character_args` - a list of arguments for named character vectors.
+#'
+#' There are a few special cases:
+#' * `assert_polygon_data` - asserts `sf` data frame with polygon country data.
+#' * `assert_reactive` - asserts `reactive` class target_object.
+#' * `assert_polygon_data` - asserts `reactiveVal` class target_object.
+#'
 #' @name checkmate-helper
 #' @keywords internal
 #' @noRd
@@ -75,7 +98,7 @@ check_character_args <- function() {
 #' @noRd
 assert_character_args <- check_character_args
 
-#' Common \pkg{checkmate} arguments for character vectors
+#' Common \pkg{checkmate} arguments for named character vectors
 #'
 #' @keywords internal
 #' @noRd
