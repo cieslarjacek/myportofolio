@@ -67,10 +67,10 @@ main_page <- shiny::fluidPage(
             shiny::tags$p(
               class = "section-text",
               "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmodtempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-              minim veniam,quis nostrud exercitation ullamco laboris nisi ut aliquip
+              eiusmodtempor incididunt ut labore et dolore magna aliqua. Ut enim
+              minim veniam,quis nostrud exercitation ullamco laboris nisi ut ali
               ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-              voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur
+              voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excep
               sint occaecat cupidatat non proident, sunt in culpa qui officia
               deserunt mollit anim id est laborum."
             )
@@ -81,10 +81,10 @@ main_page <- shiny::fluidPage(
             shiny::tags$p(
               class = "section-text",
               "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmodtempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-              minim veniam,quis nostrud exercitation ullamco laboris nisi ut aliquip
+              eiusmodtempor incididunt ut labore et dolore magna aliqua. Ut enim
+              minim veniam,quis nostrud exercitation ullamco laboris nisi ut ali
               ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-              voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur
+              voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excep
               sint occaecat cupidatat non proident, sunt in culpa qui officia
               deserunt mollit anim id est laborum."
             )
