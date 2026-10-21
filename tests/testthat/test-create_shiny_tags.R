@@ -38,13 +38,13 @@ test_that("create_example_hlink() returns correct HTML", {
   expected <- shiny::tags$a(
     class = "example-btn",
     href = hyphen_test_label,
-    shiny::tags$p(
-      class = "example-btn-header",
-      test_label
-    ),
     shiny::tags$img(
       class = "example-btn-image",
       src = paste0("images/", hyphen_test_label, "_example_image.png")
+    ),
+    shiny::tags$p(
+      class = "example-btn-header",
+      test_label
     )
   )
 
@@ -63,7 +63,7 @@ test_that("create_footer_hlink() returns correct HTML", {
     target = "_blank",
     shiny::tags$img(
       class = "contact-btn-image",
-      src = paste0("images/", hyphen_test_label, "_black.png")
+      src = paste0("images/", hyphen_test_label, "_black.svg")
     )
   )
 
