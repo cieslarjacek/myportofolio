@@ -8,6 +8,7 @@
 .page-title {
   display: flex;
   align-items: center;
+  margin-bottom: 0;
   padding: clamp(var(--ms-y-min), var(--ms-y-base), var(--ms-y-max))
     clamp(var(--ms-x-min), var(--ms-x-base), var(--ms-x-max));
 }
