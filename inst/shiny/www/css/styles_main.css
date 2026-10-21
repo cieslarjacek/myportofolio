@@ -132,24 +132,16 @@ body {
 }
 
 /* content styles - about & contact */
-#about-contact {
-  display: flex;
-  flex-direction: column;
-  padding: clamp(var(--ps-section-lg-min), var(--ps-section-lg-base), var(--ps-section-lg-max)) 0;
-}
-
-#about-contact-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(var(--gap-section-min), var(--gap-section-base), var(--gap-section-max));
-}
-
 #about,
 #contact {
   display: flex;
   flex-direction: column;
   gap: clamp(var(--gap-section-sm-min), var(--gap-section-sm-base), var(--gap-section-sm-max));
-  scroll-margin-top: calc(10vh + clamp(var(--ps-section-min), var(--ps-section-base), var(--ps-section-max)));
+  padding-top: clamp(var(--ps-section-lg-min), var(--ps-section-lg-base), var(--ps-section-lg-max));
+  scroll-margin-top: calc(
+    10vh + clamp(var(--ps-section-min), var(--ps-section-base), var(--ps-section-max)) -
+      clamp(var(--ps-section-lg-min), var(--ps-section-lg-base), var(--ps-section-lg-max))
+  );
 }
 
 #about > *,
@@ -157,30 +149,37 @@ body {
   margin-bottom: 0;
 }
 
+#contact {
+  width: calc((100% - clamp(var(--gap-section-min), var(--gap-section-base), var(--gap-section-max))) / 2);
+  padding-bottom: clamp(var(--ps-section-lg-min), var(--ps-section-lg-base), var(--ps-section-lg-max));
+}
+
 #email-btn {
   align-self: flex-start;
-  background-color: var(--clr-primary);
   border: solid var(--clr-primary);
   border-radius: var(--border-radius-base);
-  color: var(--clr-base);
+  color: var(--clr-primary);
   display: inline-flex;
   font-size: clamp(var(--fs-big-min), var(--fs-big-base), var(--fs-big-max));
   padding: clamp(var(--ms-y-min), var(--ms-y-base), var(--ms-y-max))
     clamp(var(--ms-x-min), var(--ms-x-base), var(--ms-x-max));
   text-decoration: none !important;
-  margin-top: clamp(var(--ps-section-min), var(--ps-section-base), var(--ps-section-max));
+  margin-top: calc(
+    clamp(var(--ps-section-min), var(--ps-section-base), var(--ps-section-max)) -
+      clamp(var(--gap-section-sm-min), var(--gap-section-sm-base), var(--gap-section-sm-max))
+  );
 }
 
 #email-btn:hover {
-  color: var(--clr-base-dk);
+  background-color: var(--clr-base-dk);
 }
 
 @media all and (max-width: 767px) {
   .example-btn {
     flex: 0 0 100%;
   }
-  #about-contact-row {
-    grid-template-columns: minmax(0, 1fr);
+  #contact {
+    width: 100%;
   }
 }
 
