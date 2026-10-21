@@ -29,13 +29,13 @@ create_example_hlink <- function(hlink_label) {
   shiny::tags$a(
     class = "example-btn",
     href = kebab_string,
-    shiny::tags$p(
-      class = "example-btn-header",
-      hlink_label
-    ),
     shiny::tags$img(
       class = "example-btn-image",
       src = paste0("images/", kebab_string, "_example_image.png")
+    ),
+    shiny::tags$p(
+      class = "example-btn-header",
+      hlink_label
     )
   )
 }
@@ -54,7 +54,7 @@ create_footer_hlink <- function(hlink_label, hlink_ref) {
     target = "_blank",
     shiny::tags$img(
       class = "contact-btn-image",
-      src = paste0("images/", kebab_string, "_black.png")
+      src = paste0("images/", kebab_string, "_black.svg")
     )
   )
 }

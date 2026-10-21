@@ -4,12 +4,12 @@
 \alias{source_components}
 \title{Source component files}
 \usage{
-source_components(component_paths, evalutation_env = globalenv())
+source_components(component_paths, evaluation_env = globalenv())
 }
 \arguments{
 \item{component_paths}{A character vector with component file paths.}
 
-\item{evalutation_env}{Environment in which the parsed expressions are
+\item{evaluation_env}{Environment in which the parsed expressions are
 evaluated. Passed to \code{\link[base:source]{base::source()}} as \code{local} parameter. Default is
 \code{globalenv()}.}
 }

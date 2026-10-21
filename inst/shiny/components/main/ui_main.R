@@ -1,4 +1,5 @@
 main_page <- shiny::fluidPage(
+  theme = bslib::bs_theme(version = 5),
   shiny::tags$head(
     shiny::tags$link(
       rel = "stylesheet",
@@ -13,9 +14,16 @@ main_page <- shiny::fluidPage(
     class = "main-grid",
     shiny::tags$div(
       class = "header",
-      lapply(
-        c("Intro", "Examples", "About", "Contact"),
-        myportfolio::create_header_hlink
+      shiny::tags$img(
+        src = "images/dev_black.svg",
+        class = "header-logo"
+      ),
+      tags$nav(
+        class = "header-nav",
+        lapply(
+          c("Intro", "Examples", "About", "Contact"),
+          myportfolio::create_header_hlink
+        )
       )
     ),
     shiny::tags$div(
@@ -44,39 +52,43 @@ main_page <- shiny::fluidPage(
         shiny::tags$div(
           id = "examples-panel",
           lapply(
-            c("Dashboard", "CI/CD", "ETL"),
+            c("Dashboard", "Data Science", "CI/CD", "ETL"),
             myportfolio::create_example_hlink
           )
         )
       ),
-      shiny::tags$section(
-        id = "about",
-        class = "section-default",
-        shiny::tags$h2(class = "section-heading", "About"),
-        shiny::tags$p(
-          class = "section-text",
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmodtempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam,quis nostrud exercitation ullamco laboris nisi ut aliquip
-          ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-          voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur
-          sint occaecat cupidatat non proident, sunt in culpa qui officia
-          deserunt mollit anim id est laborum."
-        )
-      ),
-      shiny::tags$section(
-        id = "contact",
-        class = "section-default",
-        shiny::tags$h2(class = "section-heading", "Contact"),
-        shiny::tags$p(
-          class = "section-text",
-          "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmodtempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam,quis nostrud exercitation ullamco laboris nisi ut aliquip
-          ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-          voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur
-          sint occaecat cupidatat non proident, sunt in culpa qui officia
-          deserunt mollit anim id est laborum."
+      shiny::tags$div(
+        id = "about-contact",
+        shiny::tags$div(
+          id = "about-contact-row",
+          shiny::tags$section(
+            id = "about",
+            shiny::tags$h2(class = "section-heading", "About"),
+            shiny::tags$p(
+              class = "section-text",
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmodtempor incididunt ut labore et dolore magna aliqua. Ut enim
+              minim veniam,quis nostrud exercitation ullamco laboris nisi ut ali
+              ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+              voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excep
+              sint occaecat cupidatat non proident, sunt in culpa qui officia
+              deserunt mollit anim id est laborum."
+            )
+          ),
+          shiny::tags$section(
+            id = "contact",
+            shiny::tags$h2(class = "section-heading", "Contact"),
+            shiny::tags$p(
+              class = "section-text",
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+              eiusmodtempor incididunt ut labore et dolore magna aliqua. Ut enim
+              minim veniam,quis nostrud exercitation ullamco laboris nisi ut ali
+              ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+              voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excep
+              sint occaecat cupidatat non proident, sunt in culpa qui officia
+              deserunt mollit anim id est laborum."
+            )
+          )
         ),
         shiny::tags$a(
           id = "email-btn",

@@ -12,36 +12,51 @@
     --clr-leaflet-btn-bg: #ffffff;
     --clr-leaflet-btn-disabled: #bbb;
     --clr-leaflet-btn-bg-disabled: #f4f4f4;
-    --clr-btn-hover-bg: #1A7BD9;
-    --clr-btn-hover-border: #1873CB;
+    --clr-btn-hover-bg: #1a7bd9;
+    --clr-btn-hover-border: #1873cb;
     --clr-shiny-font: #1f211d;
     /* font sizes */
-    --fs-base: 1.6vw;
-    --fs-max: 11.0rem;
-    --fs-min: 1.4rem;
-    --fs-small-base: 0.85vw;
-    --fs-small-max: 5.85rem;
-    --fs-small-min: 0.75rem;
+    --fs-large-min: 1.5rem; /* 24px */
+    --fs-large-base: calc(1.375rem + 0.7vw); /* 22px + 10.08px @ 1440px ≈ 32px */
+    --fs-large-max: 2.5rem; /* 40px */
+    --fs-big-min: 1rem; /* 16px */
+    --fs-big-base: calc(0.875rem + 0.28vw); /* 14px + 4.03px @ 1440px = 18px */
+    --fs-big-max: 1.5rem; /* 24px */
+    --fs-min: 0.875rem; /* 14px */
+    --fs-base: calc(0.75rem + 0.28vw); /* 12px + 4.03px @ 1440px ≈ 16px */
+    --fs-max: 1.25rem; /* 20px */
+    --fs-small-min: 0.6875rem; /* 11px */
+    --fs-small-base: calc(0.625rem + 0.14vw); /* 10px + 2.02px @ 1440px ≈ 12px */
+    --fs-small-max: 0.875rem; /* 14px */
     --fs-bs-body: 1rem;
     --fs-bs-btn: 0.9375rem;
     /* font weight */
     --fw-bs-body: 400;
-    /* padding sizes */
-    --ps-x-base: 0.825vw;
-    --ps-x-max: 3.75rem;
-    --ps-x-min: 0.75rem;
-    --ps-y-base: 0.55vw;
-    --ps-y-max: 2.5rem;
-    --ps-y-min: 0.5rem;
-    /* heading font sizes */
-    --fs-h-base: 2.2vw;
-    --fs-h-max: 15rem;
-    --fs-h-min: 1.9rem;
-    /* heading padding sizes */
-    --ps-x-h-base: 1.5vw;
-    --ps-x-h-max: 7rem;
-    --ps-x-h-min: 0.8rem;
-    --ps-x-h-zero: 0.0rem;
+    /* nav gap sizes */
+    --gap-nav-min: 1rem; /* 16px */
+    --gap-nav-base: calc(0.5rem + 1.6vw); /* 8px + 23.04px @ 1440px ≈ 31px */
+    --gap-nav-max: 2.5rem; /* 40px */
+    /* margin and padding sizes */
+    --ms-x-min: 0.75rem; /* 12px */
+    --ms-x-base: calc(0.5rem + 1.67vw); /* 8px + 24.05px @ 1440px ≈ 32px */
+    --ms-x-max: 3rem; /* 48px */
+    --ms-y-min: 0.5rem; /* 8px */
+    --ms-y-base: calc(0.5rem + 0.28vw); /* 8px + 4.03px @ 1440px ≈ 12px */
+    --ms-y-max: 1rem; /* 16px */
+    /* section gap sizes */
+    --gap-section-min: 1.5rem; /* 24px */
+    --gap-section-base: calc(0.625rem + 2.5vw); /* 10px + 36px @ 1440px = 46px */
+    --gap-section-max: 3.75rem; /* 60px */
+    --gap-section-sm-min: 0.75rem; /* 12px */
+    --gap-section-sm-base: calc(0.375rem + 1.25vw); /* 6px + 18px @ 1440px = 24px */
+    --gap-section-sm-max: 2rem; /* 32px */
+    /* section padding sizes */
+    --ps-section-lg-min: 3rem; /* 48px */
+    --ps-section-lg-base: calc(1.875rem + 5vw); /* 30px + 72px @ 1440px = 102px */
+    --ps-section-lg-max: 8.75rem; /* 140px */
+    --ps-section-min: 2rem; /* 32px */
+    --ps-section-base: calc(1.25rem + 3.5vw); /* 20px + 50.4px @ 1440px ≈ 70px */
+    --ps-section-max: 6rem; /* 96px */
     /* border-radius */
     --border-radius-base: 15px;
 }
