@@ -5,19 +5,6 @@ ARG R_VERSION=0.0.0
 FROM rocker/r-ver:${R_VERSION} AS rbase-stage
 RUN echo "Stage 1: Installing base R and Debian dependencies"
 
-ARG GIT_USER
-ARG APP_MAIN_DIR
-ARG APP_NAME
-ARG APP_VERSION
-ARG R_VERSION
-ARG RENV_VERSION
-
-LABEL name=${APP_NAME}
-LABEL authors=${GIT_USER}
-LABEL maintainer=${GIT_USER}
-LABEL version=${APP_VERSION}
-LABEL description="Docker image that contains My Portfolio App."
-
 # Security updates.
 RUN apt-get update \
     && apt-get install -y \
@@ -50,6 +37,8 @@ RUN echo "Stage 2: Installing 'renv'"
 
 ENV CRAN_URL=https://cloud.r-project.org
 RUN R -e "install.packages('remotes', repos = '${CRAN_URL}')"
+
+ARG RENV_VERSION
 RUN R -e "remotes::install_version('renv', version = '${RENV_VERSION}', repos = '${CRAN_URL}')"
 
 ############################################
@@ -58,6 +47,7 @@ RUN R -e "remotes::install_version('renv', version = '${RENV_VERSION}', repos = 
 FROM renv-stage AS build-env-stage
 RUN echo "Stage 3: Building environment with 'renv'"
 
+ARG APP_MAIN_DIR
 WORKDIR ${APP_MAIN_DIR}
 
 # Copy only "renv" related files for better layer caching.
@@ -72,6 +62,7 @@ RUN R -e "renv::restore()"
 FROM build-env-stage AS shiny-app-stage
 RUN echo "Stage 4: Installing project package and running Shiny"
 
+ARG APP_MAIN_DIR
 WORKDIR ${APP_MAIN_DIR}
 
 # Copy necessary folders and files from the project.
@@ -90,4 +81,17 @@ RUN R -e "install.packages('.', repos = NULL, type = 'source')"
 EXPOSE 3838
 
 ENV APP_PATH=${APP_MAIN_DIR}/inst/shiny/app.R
+
+# Per-build metadata, declared after the last RUN so that it cannot
+# invalidate any cached layer. "version" is checked by the PROD promotion
+# in "cd-deploy.yaml".
+ARG APP_NAME
+ARG APP_VERSION
+ARG GIT_USER
+LABEL name=${APP_NAME}
+LABEL authors=${GIT_USER}
+LABEL maintainer=${GIT_USER}
+LABEL version=${APP_VERSION}
+LABEL description="Docker image that contains My Portfolio App."
+
 CMD ["R", "-e", "shiny::runApp(appDir = Sys.getenv('APP_PATH'), host = '0.0.0.0', port = 3838)"]

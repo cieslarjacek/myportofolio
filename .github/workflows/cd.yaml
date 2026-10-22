@@ -11,7 +11,7 @@ on:
         description: "Target environment"
         required: true
         type: choice
-        options: [test, prod]
+        options: [dev, test, prod]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,7 +26,8 @@ permissions:
 #   CI merges feature/* >>> develop        : auto-deploy to DEV
 #   CI merges bugfix/*  >>> release/X.X.X  : auto-deploy to TEST
 #   CI merges hotfix/*  >>> release/X.X.X  : auto-deploy to TEST
-#   Manual trigger                         : promote to TEST or PROD
+#   Manual trigger (dev)                   : redeploy develop to DEV (run on develop only)
+#   Manual trigger (test, prod)            : promote to TEST or PROD
 #
 # Vault token renewal is NOT part of this pipeline. The server renews its own
 # token daily via vault-renew-app-token.timer, so no Vault credential is held
@@ -49,35 +50,66 @@ jobs:
 
       - name: Extract and validate version
         id: vars
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_ENV: ${{ github.event.inputs.environment }}
         run: |
+          set -euo pipefail
           APP_NAME=$(grep '^Package:' DESCRIPTION | cut -d ' ' -f2)
           VERSION=$(grep '^Version:' DESCRIPTION | cut -d ' ' -f2)
 
-          # DEV (develop branch): X.X.X or X.X.X.XXXX
-          if [[ "${{ github.ref_name }}" == "develop" ]]; then
-            if ! echo "${VERSION}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
-              echo "Invalid version: '${VERSION}' - DEV requires X.X.X or X.X.X.XXXX format"
-              exit 1
-            fi
-
-          # TEST / PROD (release/X.X.X branch or manual trigger): X.X.X only
-          elif [[ "${{ github.ref_name }}" =~ ^release/.+ ]] || \
-               [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            if ! echo "${VERSION}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-              echo "Invalid version: '${VERSION}' - TEST and PROD require X.X.X format"
-              exit 1
-            fi
+          # Target environment: the dispatch input wins; otherwise the pushed branch decides.
+          # Checking the branch first would validate a TEST/PROD dispatch run on develop
+          # with the DEV rule and accept X.X.X.XXXX.
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            TARGET_ENV="$INPUT_ENV"
+          elif [[ "$REF_NAME" == "develop" ]]; then
+            TARGET_ENV="dev"
+          elif [[ "$REF_NAME" =~ ^release/.+ ]]; then
+            TARGET_ENV="test"
+          else
+            echo "No deploy target for ref '${REF_NAME}'"
+            exit 1
           fi
 
-          echo "app_name=${APP_NAME}" >> $GITHUB_OUTPUT
-          echo "version=${VERSION}"   >> $GITHUB_OUTPUT
-          echo "Version '${VERSION}' for '${APP_NAME}' is valid."
+          # DEV images are built from develop only; any other ref would read the wrong DESCRIPTION.
+          if [[ "$TARGET_ENV" == "dev" && "$REF_NAME" != "develop" ]]; then
+            echo "DEV deploys must run on 'develop' (got '${REF_NAME}')"
+            exit 1
+          fi
 
-  # 1. Deploy to DEV (auto on merge to develop)
+          # Version rule per target environment: DEV X.X.X or X.X.X.XXXX, TEST/PROD X.X.X.
+          case "$TARGET_ENV" in
+            dev)
+              VERSION_PATTERN='^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$'
+              VERSION_RULE='X.X.X or X.X.X.XXXX'
+              ;;
+            test|prod)
+              VERSION_PATTERN='^[0-9]+\.[0-9]+\.[0-9]+$'
+              VERSION_RULE='X.X.X'
+              ;;
+            *)
+              echo "Unknown target environment '${TARGET_ENV}'"
+              exit 1
+              ;;
+          esac
+          if ! grep -qE "$VERSION_PATTERN" <<< "$VERSION"; then
+            echo "Invalid version: '${VERSION}' - ${TARGET_ENV^^} requires ${VERSION_RULE} format"
+            exit 1
+          fi
+
+          echo "app_name=${APP_NAME}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}"   >> "$GITHUB_OUTPUT"
+          echo "Version '${VERSION}' for '${APP_NAME}' is valid for ${TARGET_ENV}."
+
+  # 1. Deploy to DEV (auto on merge to develop, or manual redeploy)
   deploy-dev:
     name: Deploy to DEV
     needs: [validate]
-    if: github.event_name == 'push' && github.ref_name == 'develop'
+    if: |
+      (github.event_name == 'push' && github.ref_name == 'develop') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev')
     permissions:
       contents: read
       packages: write
