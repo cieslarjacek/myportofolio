@@ -110,10 +110,15 @@ ci-linting:
 		Rscript $(APP_MAIN_DIR)/ci/linting.R \
 		2>&1 | tee ci_linting.log
 
-## Refresh version and digest SHA with:
-##	docker run --rm aquasec/trivy:latest --version
-##  docker buildx imagetools inspect aquasec/trivy:<version> --format '{{.Manifest.Digest}}'
-TRIVY_IMAGE := aquasec/trivy:0.69.3@sha256:bcc376de8d77cfe086a917230e818dc9f8528e3c852f7b1aff648949b6258d1c
+## Refresh the pin by digest. Never pull `latest`: in March 2026 the 0.69.4-0.69.6
+## and `latest` tags carried malware (GHSA-69fq-xp46-6x23).
+##    for registry in docker.io/aquasec ghcr.io/aquasecurity public.ecr.aws/aquasecurity; do
+##       echo "--- $registry ---"
+##       docker buildx imagetools inspect "$registry/trivy:latest" | grep -m1 '^Digest:'
+##    done
+## All three must match, then:
+##   docker run --rm aquasec/trivy:<version>@<digest> --version
+TRIVY_IMAGE := aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c
 
 ## CI pipeline uses "ci_sast_warm.log" and "ci_sast_cold.log".
 SAST_LOGFILE ?= ci_sast.log
