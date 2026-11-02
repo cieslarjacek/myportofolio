@@ -9,6 +9,7 @@ RUN echo "Stage 1: Installing base R and Debian dependencies"
 RUN apt-get update \
     && apt-get install -y \
     gpgv \
+    libbrotli1 \
     linux-libc-dev \
     && rm -rf /var/lib/apt/lists/*
 
