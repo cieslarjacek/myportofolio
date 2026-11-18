@@ -8,7 +8,9 @@ RUN echo "Stage 1: Installing base R and Debian dependencies"
 # Security updates.
 RUN apt-get update \
     && apt-get install -y \
+    apt \
     gpgv \
+    libapt-pkg6.0t64 \
     libbrotli1 \
     linux-libc-dev \
     && rm -rf /var/lib/apt/lists/*
